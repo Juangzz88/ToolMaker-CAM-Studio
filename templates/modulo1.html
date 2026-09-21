@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% set active_module = 1 %}
+
+{% block title %}Módulo 1: Operaciones & Muelas | ToolMaker CAM Studio{% endblock %}
+
+{% block content %}
+<!-- Carga de Chart.js y Three.js para renderizado 2D/3D -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<style>
+/* HUD FLOTANTE Y CONTROLES TÉCNICOS SLATE CYAN */
+.viewport-hud-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.viewport-hud-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(6px);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.hud-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+    background: #1e293b;
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-divider {
+    width: 1px;
+    height: 14px;
+    background-color: #334155;
+    margin: 0 2px;
+}
+</style>
+
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+  <div class="module-title-text d-flex align-items-center gap-2">
+    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8"/>
+    </svg>
+    <span class="fs-5 fw-bold text-light">Configuración de Operación CAM</span>
+  </div>
+  <div class="btn-group unit-toggle-group" role="group">
+    <input type="radio" class="btn-check" name="unit-m1" id="unit-mm-m1" checked>
+    <label class="btn btn-sm btn-outline-info px-3 fw-bold" for="unit-mm-m1">MM</label>
+    <input type="radio" class="btn-check" name="unit-m1" id="unit-inch-m1">
+    <label class="btn btn-sm btn-outline-info px-3 fw-bold" for="unit-inch-m1">INCH</label>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Panel Lateral: Parámetros Físicos -->
+  <div class="col-lg-4">
+    <div class="card h-100 bg-dark border-secondary">
+      <div class="card-header border-secondary d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 text-primary fs-6">Monitoreo & Operación</h5>
+        <span class="badge bg-secondary-subtle text-secondary font-mono">Físico</span>
+      </div>
+      <div class="card-body">
+        <form id="form-modulo1">
+          <!-- Presets -->
+          <div class="mb-3">
+            <label for="preset-muela" class="form-label text-light">Preset Tyrolit / FEPA</label>
+            <select class="form-select bg-dark text-light border-secondary" id="preset-muela">
+              <option value="1V1" selected>1V1 - Disco Flanco Inclinado</option>
+              <option value="1A1">1A1 - Disco Recto Plano</option>
+              <option value="11V9">11V9 - Copa Conos Invertidos</option>
+            </select>
+          </div>
+
+          <!-- Velocidades & Cargas -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="vs-speed" class="form-label text-light">Vel. Corte ($V_s$)</label>
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control font-mono bg-dark text-light border-secondary" id="vs-speed" value="30">
+                <span class="input-group-text bg-secondary text-light border-secondary unit-label">m/s</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label for="spindle-load" class="form-label text-light">Carga Spindle</label>
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control font-mono bg-dark text-light border-secondary" id="spindle-load" value="45">
+                <span class="input-group-text bg-secondary text-light border-secondary unit-label">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Métricas de Rectificado -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="ra-surface" class="form-label text-light">Rugosidad ($R_a$)</label>
+              <div class="input-group input-group-sm">
+                <input type="number" step="0.01" class="form-control font-mono bg-dark text-light border-secondary" id="ra-surface" value="0.4">
+                <span class="input-group-text bg-secondary text-light border-secondary unit-label">µm</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label for="qw-rate" class="form-label text-light">Remoción ($Q'_w$)</label>
+              <div class="input-group input-group-sm">
+                <input type="number" step="0.1" class="form-control font-mono bg-dark text-light border-secondary" id="qw-rate" value="12.5">
+                <span class="input-group-text bg-secondary text-light border-secondary unit-label">mm³/s·mm</span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Central: Visualización SVG, Canvas 2D y Gráficos Chart.js -->
+  <div class="col-lg-8">
+    <div class="row g-4">
+      <!-- Tacómetro Radial & Render 2D con HUD (2D y 3D) -->
+      <div class="col-md-6">
+        <div class="card p-3 text-center bg-dark border-secondary">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="card-title text-info fs-7 mb-0 fw-bold">RENDER GEOMÉTRICO 2D</h6>
+          </div>
+          
+          <div class="viewport-hud-wrapper">
+            <!-- HUD DE CONTROL CON BOTÓN 3D -->
+            <div class="viewport-hud-toolbar">
+              <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotasMuela()">📏 Cotas</button>
+              <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGridMuela()">🌐 Grid</button>
+              
+              <div class="hud-divider"></div>
+
+              <button type="button" class="hud-btn text-warning" title="Visor 3D Realista" onclick="abrirModal3DMuela()">
+                🧊 Vista 3D
+              </button>
+            </div>
+
+            <div id="svg-container" class="border border-secondary rounded p-2 bg-dark" style="min-height: 220px; background-color: #080d1e !important; overflow: hidden;">
+              <canvas id="wheelCanvas" width="380" height="200" class="w-100"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Potencia por Pasada (Chart.js) -->
+      <div class="col-md-6">
+        <div class="card p-3 bg-dark border-secondary">
+          <h6 class="card-title text-info fs-7 mb-3 fw-bold">Potencia por Pasada (kW)</h6>
+          <div class="chart-container" style="position: relative; height: 220px;">
+            <canvas id="chart-potencia"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE VISUALIZACIÓN 3D TIPO SOLIDWORKS / CAD STUDIO -->
+<div class="modal fade" id="modal3DMuela" tabindex="-1" aria-labelledby="modal3DLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border border-info text-light" style="background-color: #080d1e !important;">
+            <div class="modal-header border-secondary py-2">
+                <h5 class="modal-title text-info fw-bold d-flex align-items-center gap-2" id="modal3DLabel">
+                    🧊 VISOR 3D PARAMÉTRICO DE MUELA - SOLID STUDIO
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-0 position-relative" style="height: 520px; overflow: hidden; background: radial-gradient(circle, #111a36 0%, #040814 100%);">
+                <!-- CONTROLES FLOTANTES DENTRO DEL MODAL 3D -->
+                <div class="position-absolute top-0 start-0 p-3 z-3 d-flex gap-2 align-items-center flex-wrap" style="background: rgba(8, 13, 30, 0.8); backdrop-filter: blur(8px); border-bottom-right-radius: 8px; border: 1px solid #334155;">
+                    <label class="small text-info fw-bold mb-0">Acabado / Material:</label>
+                    <select id="select-material-3d" class="form-select form-select-sm bg-dark text-light border-secondary py-0" style="width: auto;" onchange="cambiarMaterial3DMuela(this.value)">
+                        <option value="carburo" selected>Carburo / Aluminio Pulido</option>
+                        <option value="tialn">AlTiN / TiAlN (Antracita/Violeta)</option>
+                        <option value="tin">TiN Nitruro de Titanio (Dorado)</option>
+                        <option value="dlc">DLC Diamante Cobre/Negro</option>
+                    </select>
+
+                    <button type="button" class="btn btn-outline-info btn-sm py-0 px-2 fw-bold" onclick="resetCamara3D()">🎥 Reset Cámara</button>
+                </div>
+
+                <!-- CONTENEDOR THREE.JS -->
+                <div id="container-3d-muela" style="width: 100%; height: 100%;"></div>
+            </div>
+
+            <div class="modal-footer border-secondary py-2 justify-content-between">
+                <small class="text-secondary font-monospace">Rotación: Clic Izquierdo | Zoom: Rueda Ratón | Pan: Clic Derecho</small>
+                <button type="button" class="btn btn-secondary btn-sm fw-bold px-3" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUnit = 'mm';
+let showCotasMuela = true;
+let showGridMuela = true;
+
+// VARIABLES MOTOR 3D THREE.JS
+let scene3D, camera3D, renderer3D, controls3D, toolMesh3D, edgesMesh3D;
+let currentMaterial3DKey = 'carburo';
+
+const materialesPBR = {
+    carburo: new THREE.MeshStandardMaterial({
+        color: 0x8d99ae,
+        metalness: 0.92,
+        roughness: 0.22,
+        wireframe: false
+    }),
+    tialn: new THREE.MeshStandardMaterial({
+        color: 0x2b2d42,
+        metalness: 0.88,
+        roughness: 0.28,
+        wireframe: false
+    }),
+    tin: new THREE.MeshStandardMaterial({
+        color: 0xd4af37,
+        metalness: 0.90,
+        roughness: 0.20,
+        wireframe: false
+    }),
+    dlc: new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        metalness: 0.95,
+        roughness: 0.10,
+        wireframe: false
+    })
+};
+
+// =============================================================================
+// FUNCIONES Y MOTOR TRES DIMENSIONES (THREE.JS)
+// =============================================================================
+function abrirModal3DMuela() {
+    const modalEl = document.getElementById('modal3DMuela');
+    if (!modalEl) return;
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    modalEl.addEventListener('shown.bs.modal', function () {
+        initScene3DMuela();
+        generarGeometria3DMuela();
+    }, { once: true });
+}
+
+function initScene3DMuela() {
+    const container = document.getElementById('container-3d-muela');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    scene3D = new THREE.Scene();
+    scene3D.background = new THREE.Color(0x040814);
+
+    camera3D = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera3D.position.set(100, 60, 100);
+
+    renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer3D.setSize(width, height);
+    renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer3D.shadowMap.enabled = true;
+    container.appendChild(renderer3D.domElement);
+
+    controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+    controls3D.enableDamping = true;
+    controls3D.dampingFactor = 0.05;
+
+    // ILUMINACIÓN TRIPLE DE ESTUDIO TIPO CAD
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene3D.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    dirLight1.position.set(100, 150, 100);
+    scene3D.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight2.position.set(-100, -50, -100);
+    scene3D.add(dirLight2);
+
+    const pointLight = new THREE.PointLight(0xeab308, 0.6);
+    pointLight.position.set(0, 80, 0);
+    scene3D.add(pointLight);
+
+    const gridHelper = new THREE.GridHelper(200, 20, 0x38bdf8, 0x1e293b);
+    gridHelper.position.y = -40;
+    scene3D.add(gridHelper);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls3D.update();
+        renderer3D.render(scene3D, camera3D);
+    }
+    animate();
+
+    window.addEventListener('resize', function() {
+        if (!container || !renderer3D) return;
+        camera3D.aspect = container.clientWidth / container.clientHeight;
+        camera3D.updateProjectionMatrix();
+        renderer3D.setSize(container.clientWidth, container.clientHeight);
+    });
+}
+
+function generarGeometria3DMuela() {
+    if (!scene3D) return;
+
+    if (toolMesh3D) scene3D.remove(toolMesh3D);
+    if (edgesMesh3D) scene3D.remove(edgesMesh3D);
+
+    const tipo = document.getElementById('preset-muela')?.value || '1V1';
+    const groupTool = new THREE.Group();
+
+    let muelaGeo;
+    if (tipo === '11V9') {
+        muelaGeo = new THREE.CylinderGeometry(40, 25, 20, 64, 1, true);
+    } else if (tipo === '1A1') {
+        muelaGeo = new THREE.CylinderGeometry(38, 38, 18, 64);
+    } else {
+        // 1V1 DOMO ANGULAR
+        muelaGeo = new THREE.CylinderGeometry(20, 42, 16, 64);
+    }
+
+    const muelaMesh = new THREE.Mesh(muelaGeo, materialesPBR[currentMaterial3DKey]);
+    groupTool.add(muelaMesh);
+
+    // RESALTADO DE BORDES TIPO SOLIDWORKS
+    const edgesGeo = new THREE.EdgesGeometry(muelaGeo, 20);
+    const edgesMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 1.5 });
+    edgesMesh3D = new THREE.LineSegments(edgesGeo, edgesMat);
+    groupTool.add(edgesMesh3D);
+
+    toolMesh3D = groupTool;
+    scene3D.add(toolMesh3D);
+
+    resetCamara3D();
+}
+
+function cambiarMaterial3DMuela(matKey) {
+    currentMaterial3DKey = matKey;
+    if (toolMesh3D) {
+        toolMesh3D.traverse((child) => {
+            if (child.isMesh) child.material = materialesPBR[matKey];
+        });
+    }
+}
+
+function resetCamara3D() {
+    if (!camera3D || !controls3D) return;
+    camera3D.position.set(80, 40, 80);
+    controls3D.target.set(0, 0, 0);
+    controls3D.update();
+}
+
+// =============================================================================
+// FUNCIONES DE CONTROL RENDER 2D
+// =============================================================================
+function toggleCotasMuela() {
+    showCotasMuela = !showCotasMuela;
+    const btn = document.getElementById('btn-toggle-cotas');
+    if (btn) btn.classList.toggle('active', showCotasMuela);
+    renderWheelCanvas();
+}
+
+function toggleGridMuela() {
+    showGridMuela = !showGridMuela;
+    const btn = document.getElementById('btn-toggle-grid');
+    if (btn) btn.classList.toggle('active', showGridMuela);
+    renderWheelCanvas();
+}
+
+function renderWheelCanvas() {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+
+    if (showGridMuela) {
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 16) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = 0; y < h; y += 16) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+    }
+
+    ctx.save();
+    ctx.translate(w / 2, h / 2 + 10);
+
+    const tipo = document.getElementById('preset-muela')?.value || '1V1';
+    const rD = 85;
+    const ry = rD * 0.22;
+    const bodyH = 40;
+    const holeR = 25;
+
+    ctx.lineWidth = 1.8;
+
+    if (tipo === '1V1') {
+        const topR = rD * 0.55;
+        const botR = rD;
+        const h1V1 = bodyH * 0.85;
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(-botR, 0);
+        ctx.lineTo(-topR, -h1V1);
+        ctx.ellipse(0, -h1V1, topR, topR * 0.22, 0, Math.PI, 0, true);
+        ctx.lineTo(botR, 0);
+        ctx.ellipse(0, 0, botR, botR * 0.22, 0, 0, Math.PI, true);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.strokeStyle = '#eab308';
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, botR, botR * 0.22, 0, Math.PI * 0.05, Math.PI * 0.95, false);
+        ctx.lineTo((topR + (botR - topR) * 0.35) * Math.cos(Math.PI * 0.95), -h1V1 * 0.65);
+        ctx.ellipse(0, -h1V1 * 0.65, topR + (botR - topR) * 0.35, (topR + (botR - topR) * 0.35) * 0.22, 0, Math.PI * 0.95, Math.PI * 0.05, true);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+    } else {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        ctx.rect(-rD, -bodyH / 2, rD * 2, bodyH);
+        ctx.fill(); ctx.stroke();
+    }
+
+    if (showCotasMuela) {
+        const yOffsetD = bodyH / 2 + ry + 18;
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-rD, yOffsetD); ctx.lineTo(rD, yOffsetD);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`ØD 100.00`, 0, yOffsetD + 4);
+    }
+
+    ctx.restore();
+    ctx.restore();
+}
+
+// INICIALIZACIÓN DE GRÁFICO CHART.JS DE POTENCIA POR PASADA
+function initChartPotencia() {
+    const ctx = document.getElementById('chart-potencia')?.getContext('2d');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Pasada 1', 'Pasada 2', 'Pasada 3'],
+            datasets: [{
+                label: 'Potencia (kW)',
+                data: [3.2, 3.0, 1.8],
+                backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                borderColor: '#38bdf8',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderWheelCanvas();
+    initChartPotencia();
+
+    document.getElementById('preset-muela')?.addEventListener('change', function() {
+        renderWheelCanvas();
+        if (scene3D) generarGeometria3DMuela();
+    });
+});
+</script>
+{% endblock %}
