@@ -16,11 +16,16 @@ def calculadora_muelas():
 
 @app.route('/geometria-herramienta')
 def geometria_herramienta():
-    return render_template('geometria.html')
+    return render_template('geometria.html', active_module=2)
 
 @app.route('/geometria-brocas')
 def geometria_brocas():
     return render_template('brocas.html')
+
+# NUEVA RUTA INTEGRADA: MÓDULO 4 (BIBLIOTECA DE ABRASIVOS FEPA)
+@app.route('/catalogo-abrasivos')
+def catalogo_abrasivos():
+    return render_template('abrasivos.html', active_module=4)
 
 @app.route('/api/calcular-rectificado', methods=['POST'])
 def calcular_rectificado():

@@ -170,23 +170,28 @@
                     </div>
                 </div>
 
-                <!-- TARJETA DEL CANVAS DEL PERFIL 2D (ESTÁTICA, HOMOGÉNEA CON MODULOS 2 Y 3) -->
+                <!-- TARJETA DEL CANVAS DEL PERFIL 2D CON HUD FLOTANTE UNIFICADO -->
                 <div class="card p-3 mb-3">
                     <label class="d-block mb-2 text-info fw-bold text-center">📐 PERFIL GEOMÉTRICO 2D DE MUELA</label>
                     
                     <div class="viewport-hud-wrapper">
-                        <!-- BARRA FLOTANTE HUD SIMPLIFICADA (SIN ZOOM) -->
                         <div class="viewport-hud-toolbar">
-                            <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotasMuela()">📏 Cotas</button>
-                            <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGridMuela()">🌐 Grid</button>
+                            <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoomM1(0.15)">＋</button>
+                            <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoomM1(-0.15)">－</button>
+                            <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoomM1()">100%</button>
+                            
+                            <div class="hud-divider"></div>
+                            
+                            <button type="button" class="hud-btn active" id="btn-toggle-cotas-m1" onclick="toggleCotasM1()">📏 Cotas</button>
+                            <button type="button" class="hud-btn active" id="btn-toggle-grid-m1" onclick="toggleGridM1()">🌐 Grid</button>
                             
                             <div class="hud-divider"></div>
 
-                            <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNGMuela()">📸 PNG</button>
+                            <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNGM1()">📸 PNG</button>
                         </div>
 
                         <div class="bg-dark border border-secondary rounded p-2 d-flex justify-content-center align-items-center" style="min-height: 200px; overflow: hidden; background-color: #080d1e !important;">
-                            <canvas id="wheelCanvas" width="520" height="190" class="w-100"></canvas>
+                            <canvas id="wheelCanvas" width="520" height="190" class="w-100" style="cursor: grab;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -361,8 +366,16 @@
 let currentUnit = 'mm';
 let pasadasChart = null;
 
-let showCotasMuela = true;
-let showGridMuela = true;
+// VARIABLES GLOBALES DE ZOOM Y PAN PARA MÓDULO 1
+let scaleM1 = 1.0;
+let panXM1 = 0;
+let panYM1 = 0;
+let isDraggingM1 = false;
+let startXM1 = 0;
+let startYM1 = 0;
+
+let showCotasM1 = true;
+let showGridM1 = true;
 
 const presetsTyrolit = {
     fluting: {
@@ -397,21 +410,34 @@ const muelasPorOperacion = {
     ]
 };
 
-function toggleCotasMuela() {
-    showCotasMuela = !showCotasMuela;
-    const btn = document.getElementById('btn-toggle-cotas');
-    if (btn) btn.classList.toggle('active', showCotasMuela);
+// CONTROLES HUD DEL CANVAS MÓDULO 1
+function ajustarZoomM1(delta) {
+    scaleM1 = Math.max(0.4, Math.min(8.0, scaleM1 + delta));
     renderWheelCanvas();
 }
 
-function toggleGridMuela() {
-    showGridMuela = !showGridMuela;
-    const btn = document.getElementById('btn-toggle-grid');
-    if (btn) btn.classList.toggle('active', showGridMuela);
+function resetZoomM1() {
+    scaleM1 = 1.0;
+    panXM1 = 0;
+    panYM1 = 0;
     renderWheelCanvas();
 }
 
-function exportarPNGMuela() {
+function toggleCotasM1() {
+    showCotasM1 = !showCotasM1;
+    const btn = document.getElementById('btn-toggle-cotas-m1');
+    if (btn) btn.classList.toggle('active', showCotasM1);
+    renderWheelCanvas();
+}
+
+function toggleGridM1() {
+    showGridM1 = !showGridM1;
+    const btn = document.getElementById('btn-toggle-grid-m1');
+    if (btn) btn.classList.toggle('active', showGridM1);
+    renderWheelCanvas();
+}
+
+function exportarPNGM1() {
     const canvas = document.getElementById('wheelCanvas');
     if (!canvas) return;
     
@@ -420,7 +446,7 @@ function exportarPNGMuela() {
     tempCanvas.height = canvas.height;
     const tempCtx = tempCanvas.getContext('2d');
     
-    dibujarGeometriaMuela(tempCtx, tempCanvas.width, tempCanvas.height, false, showCotasMuela);
+    dibujarGeometriaMuela(tempCtx, tempCanvas.width, tempCanvas.height, false, showCotasM1);
 
     const link = document.createElement('a');
     link.download = 'ToolMaker-Muela-2D.png';
@@ -459,12 +485,12 @@ function checkTransferredToolData() {
     }
 }
 
-// MOTOR GRAFICO VECTORIAL DE PERFIL 2D (ESTÁTICO HIGH-DPI CON GRIDA Y COTAS)
+// MOTOR GRÁFICO VECTORIAL DE PERFIL 2D (UNIFICADO CON MÓDULO 4)
 function renderWheelCanvas() {
     const canvas = document.getElementById('wheelCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    dibujarGeometriaMuela(ctx, canvas.width, canvas.height, showGridMuela, showCotasMuela);
+    dibujarGeometriaMuela(ctx, canvas.width, canvas.height, showGridM1, showCotasM1);
 }
 
 function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
@@ -489,49 +515,47 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     const w = rect.width;
     const h = rect.height;
 
-    // 1. GRID UNIFICADO SLATE
+    // GRID SLATE
     if (renderGrid) {
         ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
         ctx.lineWidth = 1;
-        const gridSize = 16;
-        for (let x = 0; x < w; x += gridSize) {
+        const gridSize = 16 * scaleM1;
+        const offsetX = (w / 2 + panXM1) % gridSize;
+        const offsetY = (h / 2 + panYM1) % gridSize;
+
+        for (let x = offsetX; x < w; x += gridSize) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
         }
-        for (let y = 0; y < h; y += gridSize) {
+        for (let y = offsetY; y < h; y += gridSize) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
         }
     }
 
     ctx.save();
-    // Centrado de la muela en el Viewport ISO
-    ctx.translate(w / 2, h / 2 + 10);
+    ctx.translate(w / 2 + panXM1, h / 2 + 10 + panYM1);
+    ctx.scale(scaleM1, scaleM1);
 
     const tipo = getValStr('tipo_rueda', '1V1');
     const dMuela = getValNum('diametro_rueda', 100);
     const uAncho = getValNum('ancho_rueda', 10);
-    const angV = getValNum('angulo_v', 45);
 
-    // Escalas de proyección isométrica
-    const rD = Math.min(130, Math.max(85, dMuela * 0.95)); 
+    const rD = 85; 
     const ry = rD * 0.22; 
-    const bodyH = Math.min(65, Math.max(32, uAncho * 2.2)); 
+    const bodyH = 38; 
     const holeR = rD * 0.28;
 
     ctx.lineWidth = 1.8;
 
     // =========================================================================
-    // DIBUJO GEOMÉTRICO FIEL A LAS FORMAS FEPA / ISO
+    // DIBUJO GEOMÉTRICO 1V1 EXACTO DEL DECODIFICADOR FEPA Y OTRAS FORMAS
     // =========================================================================
 
     if (tipo === '1V1') {
-        // ---------------------------------------------------------------------
-        // 1. MUELA 1V1 (DOMO CÓNICO CON BANDA ABRASIVA EN EL FLANCO INCLINADO X)
-        // ---------------------------------------------------------------------
-        const topR = rD * 0.55;  // Radio del plato plano superior
-        const botR = rD;         // Radio base exterior
+        const topR = rD * 0.55; 
+        const botR = rD; 
         const h1V1 = bodyH * 0.85;
 
-        // A) Núcleo Metálico / Cuerpo Cónico (Plato domo)
+        // Cuerpo Cónico
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
 
@@ -545,13 +569,13 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.fill();
         ctx.stroke();
 
-        // B) Agujero H Central en el centro del plato
+        // Agujero Central H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
         ctx.beginPath();
         ctx.ellipse(0, -h1V1 * 0.3, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // C) Banda Abrasiva Diamantada (Capa X de color dorado sobre todo el faldón inclinado)
+        // Banda Abrasiva
         const xOffsetR = topR + (botR - topR) * 0.35;
         const xOffsetH = h1V1 * 0.65;
 
@@ -560,25 +584,19 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.lineWidth = 2.0;
 
         ctx.beginPath();
-        // Borde exterior inferior
         ctx.ellipse(0, 0, botR, botR * 0.22, 0, Math.PI * 0.05, Math.PI * 0.95, false);
         ctx.lineTo(xOffsetR * Math.cos(Math.PI * 0.95), -xOffsetH + (xOffsetR * 0.22) * Math.sin(Math.PI * 0.95));
-        // Línea divisoria de cota X
         ctx.ellipse(0, -xOffsetH, xOffsetR, xOffsetR * 0.22, 0, Math.PI * 0.95, Math.PI * 0.05, true);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
     } else if (tipo === '11V9' || tipo === '11V5') {
-        // ---------------------------------------------------------------------
-        // 2. MUELAS COPA CÓNICA (11V9 / 11V5)
-        // ---------------------------------------------------------------------
         const is11V5 = (tipo === '11V5');
         const topR = rD;
-        const botR = rD * (is11V5 ? 0.78 : 0.62); // 11V5 es de perfil más bajo / ancho
+        const botR = rD * (is11V5 ? 0.78 : 0.62);
         const hCopa = is11V5 ? bodyH * 0.7 : bodyH * 1.1;
 
-        // Cuerpo Cónico
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
@@ -591,13 +609,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.fill();
         ctx.stroke();
 
-        // Agujero Central H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
         ctx.beginPath();
         ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Corona Abrasiva Frontal Superior (Banda W/X)
         ctx.strokeStyle = '#eab308';
         ctx.fillStyle = 'rgba(234, 179, 8, 0.3)';
         ctx.beginPath();
@@ -607,13 +623,9 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.stroke();
 
     } else if (tipo === '12V9' || tipo === '12A2') {
-        // ---------------------------------------------------------------------
-        // 3. MUELAS COPA INVERTIDA / PLATO (12V9 / 12A2)
-        // ---------------------------------------------------------------------
         const topR = rD;
         const botR = rD * 0.72;
 
-        // Cuerpo de Plato Invertido (Base ancha arriba, rebaje interior profundo)
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
@@ -626,13 +638,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.fill();
         ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
         ctx.beginPath();
         ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Banda Abrasiva en el Borde Exterior inclinado (Plato 12V9/12A2)
         ctx.strokeStyle = '#eab308';
         ctx.fillStyle = 'rgba(234, 179, 8, 0.35)';
         ctx.beginPath();
@@ -644,9 +654,6 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.stroke();
 
     } else {
-        // ---------------------------------------------------------------------
-        // 4. MUELAS CILÍNDRICAS RECTAS (1A1 / 14A1)
-        // ---------------------------------------------------------------------
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
@@ -659,13 +666,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.fill();
         ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
         ctx.beginPath();
         ctx.ellipse(0, -bodyH / 2, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Anillo Abrasivo Frontal Cilíndrico
         ctx.strokeStyle = '#eab308';
         ctx.fillStyle = 'rgba(234, 179, 8, 0.3)';
         ctx.beginPath();
@@ -677,7 +682,7 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.stroke();
     }
 
-    // LÍNEA DE CENTRO TÉCNICA (EJE Z EN AMARILLO)
+    // EJE CENTRAL
     ctx.strokeStyle = 'rgba(234, 179, 8, 0.5)';
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
@@ -686,46 +691,38 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // =========================================================================
-    // COTAS TÉCNICAS PLANO ISO (D, H, T) CON OFFSET DESPEJADO
-    // =========================================================================
+    // COTAS PLANO ISO
     if (renderCotas) {
         ctx.fillStyle = '#94a3b8';
         ctx.font = '10px "JetBrains Mono", monospace';
         const dec = (currentUnit === 'in') ? 4 : 3;
 
-        // Cota Diámetro D (Desplazada hacia abajo fuera de la elipse inferior)
-        const yOffsetD = bodyH / 2 + ry + 18; // Margen dinámico fuera de la curva
+        const yOffsetD = bodyH / 2 + ry + 18;
 
         ctx.strokeStyle = '#64748b';
         ctx.lineWidth = 1;
 
-        // Línea principal de cota D
         ctx.beginPath();
         ctx.moveTo(-rD, yOffsetD);
         ctx.lineTo(rD, yOffsetD);
         ctx.stroke();
 
-        // Marcas verticales de tope en los extremos
         ctx.beginPath();
         ctx.moveTo(-rD, yOffsetD - 4); ctx.lineTo(-rD, yOffsetD + 4);
         ctx.moveTo(rD, yOffsetD - 4);  ctx.lineTo(rD, yOffsetD + 4);
         ctx.stroke();
 
-        // Líneas guía proyectadas desde el borde de la rueda a la cota
         ctx.strokeStyle = 'rgba(100, 116, 139, 0.4)';
         ctx.beginPath();
         ctx.moveTo(-rD, bodyH / 2); ctx.lineTo(-rD, yOffsetD + 2);
         ctx.moveTo(rD, bodyH / 2);  ctx.lineTo(rD, yOffsetD + 2);
         ctx.stroke();
 
-        // Texto ØD Centrado Debajo de la Línea
         ctx.fillStyle = '#94a3b8';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(`ØD ${dMuela.toFixed(dec)}`, 0, yOffsetD + 4);
 
-        // Cota Agujero H
         ctx.strokeStyle = '#64748b';
         ctx.beginPath();
         ctx.moveTo(-holeR, -bodyH / 2 - 12);
@@ -739,6 +736,7 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     ctx.restore();
     ctx.restore();
 }
+
 function drawGauge(canvasId, value, min, max, color) {
     const elCanvas = document.getElementById(canvasId);
     if (!elCanvas) return;
@@ -856,6 +854,50 @@ function actualizarVisibilidadGeometriaRueda() {
     }
     renderWheelCanvas();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const cvs = document.getElementById('wheelCanvas');
+    if (cvs) {
+        cvs.addEventListener('mousedown', function(e) {
+            isDraggingM1 = true;
+            startXM1 = e.clientX - panXM1;
+            startYM1 = e.clientY - panYM1;
+            cvs.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDraggingM1) return;
+            panXM1 = e.clientX - startXM1;
+            panYM1 = e.clientY - startYM1;
+            renderWheelCanvas();
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDraggingM1) {
+                isDraggingM1 = false;
+                if (cvs) cvs.style.cursor = 'grab';
+            }
+        });
+
+        cvs.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const rect = cvs.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - (rect.width / 2);
+            const mouseY = e.clientY - rect.top - (rect.height / 2);
+
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+            const newScale = Math.max(0.4, Math.min(8.0, scaleM1 * zoomFactor));
+
+            panXM1 = mouseX - (mouseX - panXM1) * (newScale / scaleM1);
+            panYM1 = mouseY - (mouseY - panYM1) * (newScale / scaleM1);
+
+            scaleM1 = newScale;
+            renderWheelCanvas();
+        }, { passive: false });
+    }
+
+    renderWheelCanvas();
+});
 
 document.getElementById('tipo_rueda').addEventListener('change', function() {
     actualizarVisibilidadGeometriaRueda();

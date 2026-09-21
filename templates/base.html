@@ -205,7 +205,7 @@
     .module-title-text span,
     .module-header-container h5,
     .module-header-container span {
-      font-weight: 400 !important; /* Peso visual uniforme para todos los módulos */
+      font-weight: 400 !important;
       color: #f8fafc !important;
     }
 
@@ -222,165 +222,150 @@
     .text-danger {
       color: #38bdf8 !important;
     }
-    /* ==========================================================================
-   ESTANDARIZACIÓN DEFINITIVA DEL PANEL DE RESULTADOS DERECHO (MÓDULOS 1, 2 Y 3)
-   ========================================================================== */
 
-/* 1. Títulos superiores de cada tarjeta derecha */
-.card .param-title,
-.card div[class*="title"],
-.card .text-uppercase {
-  font-size: 0.725rem !important; /* 11.6px Unificado */
-  font-weight: 600 !important;
-  color: #94a3b8 !important; /* Gris Slate fino */
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  margin-bottom: 0.35rem !important;
-}
+    /* ESTANDARIZACIÓN DEL PANEL DE RESULTADOS DERECHO */
+    .card .param-title,
+    .card div[class*="title"],
+    .card .text-uppercase {
+      font-size: 0.725rem !important;
+      font-weight: 600 !important;
+      color: #94a3b8 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      margin-bottom: 0.35rem !important;
+    }
 
-/* 2. Valores numéricos y texto destacado principal */
-.param-value,
-.card .fs-4,
-.card .fs-5,
-.card span[id*="-val"],
-.card div[id*="-val"] {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 1.15rem !important; /* 18.4px Unificado */
-  font-weight: 700 !important;
-  color: #38bdf8 !important; /* Azul Cyan Industrial unificado */
-  letter-spacing: -0.02em !important;
-  margin-top: 0.15rem !important;
-  margin-bottom: 0.15rem !important;
-}
+    .param-value,
+    .card .fs-4,
+    .card .fs-5,
+    .card span[id*="-val"],
+    .card div[id*="-val"] {
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 1.15rem !important;
+      font-weight: 700 !important;
+      color: #38bdf8 !important;
+      letter-spacing: -0.02em !important;
+      margin-top: 0.15rem !important;
+      margin-bottom: 0.15rem !important;
+    }
 
-/* 3. Textos secundarios dentro del valor (ej. unidades "mm", "°", "/") */
-.param-value span,
-.param-value .text-secondary,
-.card .fs-5.text-secondary {
-  font-size: 0.9rem !important;
-  font-weight: 500 !important;
-  color: #64748b !important;
-}
+    .param-value span,
+    .param-value .text-secondary,
+    .card .fs-5.text-secondary {
+      font-size: 0.9rem !important;
+      font-weight: 500 !important;
+      color: #64748b !important;
+    }
 
-/* 4. Leyendas de estado y datos complementarios (parte inferior de tarjeta) */
-.param-subtitle,
-.card .param-subtitle,
-.card .text-success,
-.card .text-info {
-  font-size: 0.75rem !important; /* 12px Unificado */
-  font-weight: 500 !important;
-  margin-top: 0.25rem !important;
-}
+    .param-subtitle,
+    .card .param-subtitle,
+    .card .text-success,
+    .card .text-info {
+      font-size: 0.75rem !important;
+      font-weight: 500 !important;
+      margin-top: 0.25rem !important;
+    }
 
-/* 5. Altura y Relleno Simétrico de las Tarjetas Derechas */
-.col-lg-6 .card,
-.col-lg-7 .card {
-  padding: 0.85rem 1rem !important;
-  margin-bottom: 0.75rem !important;
-  text-align: center !important;
-}
-/* ==========================================================================
-   HOMOGENEIZACIÓN STRICTA DE TAMAÑO DE NÚMEROS (DERECHA)
-   ========================================================================== */
+    .col-lg-6 .card,
+    .col-lg-7 .card {
+      padding: 0.85rem 1rem !important;
+      margin-bottom: 0.75rem !important;
+      text-align: center !important;
+    }
 
-/* Forzar tamaño idéntico en todos los valores numéricos principales */
-.card .param-value,
-.card [id$="-val"],
-.card [id*="-val"],
-.card .fs-4,
-.card .fs-5,
-.card div[class*="param-value"] {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 1.2rem !important; /* Mismo tamaño exacto para todos */
-  font-weight: 700 !important;
-  color: #38bdf8 !important;
-  letter-spacing: -0.01em !important;
-  line-height: 1.3 !important;
-}
+    .card .param-value,
+    .card [id$="-val"],
+    .card [id*="-val"],
+    .card .fs-4,
+    .card .fs-5,
+    .card div[class*="param-value"] {
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 1.2rem !important;
+      font-weight: 700 !important;
+      color: #38bdf8 !important;
+      letter-spacing: -0.01em !important;
+      line-height: 1.3 !important;
+    }
 
-/* Forzar que las unidades (mm, °, m/s) mantengan escala proporcional */
-.card .param-value span,
-.card [id*="-val"] span,
-.card .param-unit {
-  font-size: 0.85rem !important;
-  font-weight: 500 !important;
-  color: #64748b !important;
-  margin-left: 0.2rem !important;
-}
-/* ==========================================================================
-   BARRA HUD CAD INTEGRADA (FILA ÚNICA & ESTILO SLATE CYAN)
-   ========================================================================== */
-.cad-header-bar {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  background-color: #0f172a !important;
-  border: 1px solid #334155 !important;
-  border-bottom: none !important;
-  border-radius: 6px 6px 0 0 !important;
-  padding: 6px 10px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
+    .card .param-value span,
+    .card [id*="-val"] span,
+    .card .param-unit {
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      color: #64748b !important;
+      margin-left: 0.2rem !important;
+    }
 
-.cad-tools-group {
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 3px !important;
-  white-space: nowrap !important;
-}
+    .cad-header-bar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+      border-bottom: none !important;
+      border-radius: 6px 6px 0 0 !important;
+      padding: 6px 10px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
 
-.hud-btn {
-  background-color: #1e293b !important;
-  border: 1px solid #334155 !important;
-  color: #94a3b8 !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 0.68rem !important;
-  font-weight: 600 !important;
-  padding: 2px 6px !important;
-  height: 24px !important;
-  line-height: 1 !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease-in-out !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 3px !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
+    .cad-tools-group {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 3px !important;
+      white-space: nowrap !important;
+    }
 
-.hud-btn:hover {
-  background-color: #334155 !important;
-  color: #38bdf8 !important;
-  border-color: #38bdf8 !important;
-}
+    .hud-btn {
+      background-color: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: #94a3b8 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 0.68rem !important;
+      font-weight: 600 !important;
+      padding: 2px 6px !important;
+      height: 24px !important;
+      line-height: 1 !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease-in-out !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 3px !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
 
-.hud-btn.active {
-  background-color: rgba(56, 189, 248, 0.15) !important;
-  color: #38bdf8 !important;
-  border-color: #38bdf8 !important;
-}
+    .hud-btn:hover {
+      background-color: #334155 !important;
+      color: #38bdf8 !important;
+      border-color: #38bdf8 !important;
+    }
 
-.hud-divider {
-  display: inline-block !important;
-  width: 1px !important;
-  height: 14px !important;
-  background-color: #334155 !important;
-  margin: 0 3px !important;
-}
+    .hud-btn.active {
+      background-color: rgba(56, 189, 248, 0.15) !important;
+      color: #38bdf8 !important;
+      border-color: #38bdf8 !important;
+    }
+
+    .hud-divider {
+      display: inline-block !important;
+      width: 1px !important;
+      height: 14px !important;
+      background-color: #334155 !important;
+      margin: 0 3px !important;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
   <div class="app-layout">
-    <!-- BARRA LATERAL CON LOGO PERMANENTE -->
+    <!-- BARRA LATERAL CON LOGO PERMANENTE Y MÓDULO 4 INTEGRADO -->
     <aside class="sidebar">
       <a href="#" class="sidebar-brand" data-bs-toggle="modal" data-bs-target="#dashboardModal" title="Ver pantalla completa de módulos">
-        <!-- ÍCONO ENGRANE PERMANENTE -->
         <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -428,6 +413,17 @@
             <span class="nav-text">Mód. 3: Brocas Carburo</span>
           </a>
         </li>
+
+        <!-- MÓDULO 4 (NUEVO EN EL SIDEBAR) -->
+        <li class="sidebar-item">
+          <a href="/catalogo-abrasivos" class="sidebar-link {% if active_module == 4 %}active{% endif %}" title="Módulo 4: Abrasivos FEPA">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="rgba(56, 189, 248, 0.15)"/>
+              <line x1="12" y1="2" x2="12" y2="22"/>
+            </svg>
+            <span class="nav-text">Mód. 4: Abrasivos FEPA</span>
+          </a>
+        </li>
       </ul>
     </aside>
 
@@ -439,7 +435,7 @@
     </div>
   </div>
 
-  <!-- MODAL PANTALLA COMPLETA -->
+  <!-- MODAL PANTALLA COMPLETA CON 4 TARJETAS SIMÉTRICAS -->
   <div class="modal fade" id="dashboardModal" tabindex="-1" aria-labelledby="dashboardModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
@@ -456,11 +452,11 @@
         </div>
 
         <div class="modal-body p-5 d-flex align-items-center justify-content-center">
-          <div class="container" style="max-width: 1200px;">
+          <div class="container" style="max-width: 1300px;">
             <div class="row g-4 justify-content-center">
               
               <!-- MINIVISTA MÓDULO 1 -->
-              <div class="col-lg-4 col-md-6">
+              <div class="col-lg-3 col-md-6">
                 <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
                   <div>
                     <div class="d-flex justify-content-center mb-3">
@@ -482,7 +478,7 @@
               </div>
 
               <!-- MINIVISTA MÓDULO 2 -->
-              <div class="col-lg-4 col-md-6">
+              <div class="col-lg-3 col-md-6">
                 <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
                   <div>
                     <div class="d-flex justify-content-center mb-3">
@@ -498,7 +494,7 @@
                     </div>
                     <h5 class="text-white mb-3 fs-5">Módulo 2: Geometría de Fresas</h5>
                     <p class="module-card-description mb-4">
-                      Configuración geométrica para fresas cilíndricas planas, esféricas, toroidales y cónicas. Calcula el Índice de Rigidez (I<sub>z</sub>), asignación de radio de protección y perfil 2D en Canvas.
+                      Configuración geométrica para fresas cilíndricas planas, esféricas, toroidales y cónicas. Calcula el Índice de Rigidez (I<sub>z</sub>), asignación de radio de protección y perfil 2D/3D.
                     </p>
                   </div>
                   <a href="/geometria-herramienta" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 2</a>
@@ -506,7 +502,7 @@
               </div>
 
               <!-- MINIVISTA MÓDULO 3 -->
-              <div class="col-lg-4 col-md-6">
+              <div class="col-lg-3 col-md-6">
                 <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
                   <div>
                     <div class="d-flex justify-content-center mb-3">
@@ -526,6 +522,27 @@
                     </p>
                   </div>
                   <a href="/geometria-brocas" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 3</a>
+                </div>
+              </div>
+
+              <!-- MINIVISTA MÓDULO 4 (TARJETA PERFECTAMENTE ESTRUCTURADA) -->
+              <div class="col-lg-3 col-md-6">
+                <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-center mb-3">
+                      <div class="p-3 rounded-circle" style="background-color: #0b1120; border: 1px solid #334155;">
+                        <svg class="dashboard-preview-icon" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+                          <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="rgba(56, 189, 248, 0.15)"/>
+                          <line x1="12" y1="2" x2="12" y2="22"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <h5 class="text-white mb-3 fs-5">Módulo 4: Abrasivos FEPA</h5>
+                    <p class="module-card-description mb-4">
+                      Biblioteca y decodificador de muelas superabrasivas (Diamante/CBN), especificación de granos, concentraciones, aglomerantes (Híbrido/Resina) y perfiles ISO.
+                    </p>
+                  </div>
+                  <a href="/catalogo-abrasivos" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 4</a>
                 </div>
               </div>
 

@@ -97,7 +97,7 @@
         <div class="card card-custom p-4 h-100">
             
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="text-warning mb-0 fw-bold d-flex align-items-center gap-2">
+                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                         <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(255, 234, 0, 0.15)" stroke="#ffea00" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M12 3 L8 8" stroke="#ffea00" stroke-width="2"/>
@@ -105,7 +105,7 @@
                         <path d="M8 11 L16 15" stroke="#ffea00" stroke-width="1.5"/>
                         <path d="M8 16 L16 20" stroke="#ffea00" stroke-width="1.5"/>
                     </svg>
-                    <span>Módulo 3: Broca de Carburo Sólido (High Performance)</span>
+                    <span>Broca de Carburo Sólido (High Performance)</span>
                 </h5>
                 
                 <div class="btn-group" role="group">
@@ -179,7 +179,7 @@
                         <label class="form-label w-100 text-center fw-bold d-flex align-items-center justify-content-center">
                             Ángulo de Hélice (λ)
                             <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                                  title="🌀 Ángulo de Hélice (Helix Angle - λ)" 
+                                  title="Ángulo de Hélice (Helix Angle - λ)" 
                                   data-bs-content="Inclinación del canal helicoidal. 30° es el estándar universal; helicoides mayores (38°) facilitan la evacuación de viruta en materiales blandos.">ℹ️</span>
                         </label>
                         <div class="input-group">
@@ -198,7 +198,7 @@
                             <label class="form-label w-100 text-center fw-bold d-flex align-items-center justify-content-center">
                                 Ángulo de Punta (σ)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                                      title="📐 Ángulo de Punta (Point Angle - σ)" 
+                                      title="Ángulo de Punta (Point Angle - σ)" 
                                       data-bs-content="Ángulo cónico de corte frontal. 118° para materiales blandos y 140° para brocas de carburo en aceros e inoxidable.">ℹ️</span>
                             </label>
                             <div class="input-group">
@@ -211,7 +211,7 @@
                             <label class="form-label w-100 text-center fw-bold d-flex align-items-center justify-content-center">
                                 % Núcleo en Punta (dw)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                                      title="🛡️ Espesor del Núcleo (Web Thickness)" 
+                                      title="Espesor del Núcleo (Web Thickness)" 
                                       data-bs-content="Porcentaje del diámetro ocupado por el núcleo central (28%–32%). Aumenta la resistencia al pandeo durante el taladrado de alto avance.">ℹ️</span>
                             </label>
                             <div class="input-group">
@@ -249,7 +249,7 @@
                             <label class="form-label w-100 text-center fw-bold d-flex align-items-center justify-content-center">
                                 Ángulo Cincel (Chisel Angle - ψ)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                                      title="⚡ Ángulo Filo Transversal (Chisel Angle)" 
+                                      title="Ángulo Filo Transversal (Chisel Angle)" 
                                       data-bs-content="Ángulo del filo secundario central (125°–135°). Un correcto afilado 'Split Point' elimina la necesidad de punzonar y permite el autocentrado directo.">ℹ️</span>
                             </label>
                             <div class="input-group">
@@ -357,11 +357,12 @@
                 <div class="small text-light mt-1">Conicidad Trasera Acumulada: <span id="res-taper-acum" class="text-accent fw-bold">+0.042 mm</span></div>
             </div>
 
-            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">ADELGAZAMIENTO DE ALMA (SPLIT POINT):</label>
-                <span id="res-ancho-split" class="fs-4 fw-bold status-warning">1.12 mm</span>
-                <div class="small text-light mt-1">Arista Transversal Reducida al <span id="res-pct-cincel" class="text-info fw-bold">8% D1</span> (Auto-centrante)</div>
-            </div>
+            <!-- CÓDIGO CORREGIDO (UNIDAD EN BLANCO/CLARO HOMOGÉNEO) -->
+<div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+    <label class="d-block mb-1 text-light fw-bold">ADELGAZAMIENTO DE ALMA (SPLIT POINT):</label>
+    <span id="res-ancho-split" class="fs-4 fw-bold text-info">1.120</span> <span class="small text-light unit-label">mm</span>
+    <div class="small text-light mt-1">Arista Transversal Reducida al <span id="res-pct-cincel" class="text-info fw-bold">8% D1</span> (Auto-centrante)</div>
+</div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
                 <label class="d-block mb-1 text-light fw-bold">PASO DE HÉLICE (HELIX LEAD):</label>
@@ -897,7 +898,7 @@ function ejecutarCalculoBroca() {
     document.getElementById('res-core-punta').textContent = dwPunta.toFixed(dec);
     document.getElementById('res-core-raiz').textContent = dwRaiz.toFixed(dec);
     document.getElementById('res-taper-acum').textContent = `+${backTaperAcum.toFixed(dec)} ${currentUnit}`;
-    document.getElementById('res-ancho-split').textContent = `${anchoSplit.toFixed(dec)} ${currentUnit}`;
+    document.getElementById('res-ancho-split').textContent = anchoSplit.toFixed(dec);
     document.getElementById('res-lead-broca').textContent = lead.toFixed(2);
     document.getElementById('res-altura-punta').textContent = alturaPunta.toFixed(dec);
 
