@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% set active_module = 2 %}
+
+{% block title %}Módulo 2: Geometría de Fresas | ToolMaker CAM Studio{% endblock %}
+
+{% block content %}
+<div class="module-header-container">
+  <div class="module-title-text">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none">
+      <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8"/>
+    </svg>
+    <span>Generador de Geometría de Herramienta</span>
+  </div>
+  <div class="btn-group unit-toggle-group" role="group">
+    <input type="radio" class="btn-check" name="unit-m2" id="unit-mm-m2" checked>
+    <label class="btn btn-sm btn-outline-info px-3 fw-bold" for="unit-mm-m2">MM</label>
+    <input type="radio" class="btn-check" name="unit-m2" id="unit-inch-m2">
+    <label class="btn btn-sm btn-outline-info px-3 fw-bold" for="unit-inch-m2">INCH</label>
+  </div>
+</div>
+<!-- CONTINUA TU HTML TAL CUAL DESDE <div class="row g-4"> ... -->
+
+<div class="row g-4">
+  <!-- Configuración Geométrica -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 text-primary fs-6">Parámetros de Fresa</h5>
+        <span class="badge bg-secondary-subtle text-secondary font-mono">2D CAM</span>
+      </div>
+      <div class="card-body">
+        <form id="form-modulo2">
+          <div class="mb-3">
+            <label for="fresa-tipo" class="form-label">Tipo de Geometría</label>
+            <select class="form-select" id="fresa-tipo">
+              <option value="plana">Cilíndrica Plana</option>
+              <option value="esferica">Esférica (Ball Nose)</option>
+              <option value="toroidal">Toroidal (Bull Nose)</option>
+              <option value="conica">Cónica</option>
+            </select>
+          </div>
+
+          <!-- Diámetro y Dentes -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="d1-diam" class="form-label">Diámetro ($D_1$)</label>
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control font-mono" id="d1-diam" value="10">
+                <span class="input-group-text unit-label">mm</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <label for="z-flutes" class="form-label">Dientes ($Z$)</label>
+              <input type="number" class="form-control font-mono input-sm" id="z-flutes" value="4">
+            </div>
+          </div>
+
+          <!-- Radio de Protección Calculado Auto -->
+          <div class="p-3 mb-3 border border-info rounded bg-dark">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-secondary fs-7">Radio Protección ($4\% D_1$):</span>
+              <span id="radio-proteccion-val" class="param-value text-info fw-bold">0.40 mm</span>
+            </div>
+          </div>
+
+          <!-- Rigidez Iz -->
+          <div class="d-flex justify-content-between align-items-center p-2 rounded bg-secondary">
+            <span class="text-secondary fs-7">Índice Rigidez ($I_z$):</span>
+            <span id="iz-rigidez-val" class="param-value text-success fw-bold">1245.8 mm⁴</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista Previa Canvas 2D y Radar multiaxial -->
+  <div class="col-lg-8">
+    <div class="row g-4">
+      <!-- Canvas 2D -->
+      <div class="col-md-7">
+        <div class="card p-3">
+          <h6 class="card-title text-secondary fs-7 mb-3">Perfil 2D de la Fresa (Canvas)</h6>
+          <canvas id="canvas-fresa" width="400" height="300" class="w-100 border border-secondary rounded bg-dark"></canvas>
+        </div>
+      </div>
+      <!-- Radar Chart -->
+      <div class="col-md-5">
+        <div class="card p-3">
+          <h6 class="card-title text-secondary fs-7 mb-3">Balance Multiaxial</h6>
+          <div class="chart-container" style="position: relative; height: 300px;">
+            <canvas id="chart-radar-fresa"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

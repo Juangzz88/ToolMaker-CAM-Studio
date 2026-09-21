@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ToolMaker CAM Studio{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Fuentes Google (Inter + JetBrains Mono) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Reset & Paleta Industrial Sobria */
+    body {
+      background-color: #0b1120;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* BARRA LATERAL (SIDEBAR) */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+      width: 100vw;
+    }
+
+    .sidebar {
+      width: 65px;
+      background-color: #0f172a;
+      border-right: 1px solid #334155;
+      transition: width 0.25s ease-in-out;
+      overflow: hidden;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar:hover {
+      width: 280px;
+    }
+
+    .sidebar-brand {
+      height: 60px;
+      display: flex !important;
+      align-items: center !important;
+      padding: 0 18px !important;
+      border-bottom: 1px solid #334155;
+      color: #38bdf8;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .sidebar-brand svg {
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px !important;
+      min-height: 24px !important;
+      margin-right: 16px !important;
+      flex-shrink: 0 !important;
+      display: block !important;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      padding: 10px 0;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .sidebar-item {
+      margin: 4px 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .sidebar-link svg {
+      width: 22px !important;
+      height: 22px !important;
+      min-width: 22px !important;
+      min-height: 22px !important;
+      margin-right: 16px !important;
+      flex-shrink: 0 !important;
+      display: inline-block !important;
+    }
+
+    .sidebar-link:hover {
+      background-color: #1e293b;
+      color: #f8fafc;
+    }
+
+    .sidebar-link.active {
+      background-color: #1e293b;
+      color: #38bdf8 !important;
+      border-left: 3px solid #38bdf8;
+    }
+
+    .nav-text {
+      font-size: 0.875rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .sidebar:hover .nav-text {
+      opacity: 1;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .main-wrapper {
+      flex-grow: 1;
+      width: calc(100vw - 65px);
+      background-color: #0b1120;
+      overflow-y: auto;
+    }
+
+    /* ELEMENTOS DE FORMULARIO Y TARJETAS */
+    input.form-control, 
+    select.form-select, 
+    .param-value, 
+    .input-group-text {
+      text-align: center !important;
+    }
+
+    .card {
+      background-color: #1e293b !important;
+      border: 1px solid #334155 !important;
+      border-radius: 8px;
+    }
+
+    .param-value {
+      color: #38bdf8 !important; 
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 1.05rem !important;
+    }
+
+    .form-control, .form-select {
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+      color: #f8fafc !important;
+    }
+
+    .module-header-container {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      width: 100% !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .unit-toggle-group {
+      margin-left: auto !important;
+      display: inline-flex !important;
+    }
+
+    /* MODAL FULLSCREEN Y CARDS DE MÓDULOS */
+    .modal-fullscreen .modal-content {
+      background-color: #070c18 !important;
+      background-image: linear-gradient(rgba(51, 65, 85, 0.15) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .module-card-preview {
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+      border-radius: 12px;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .module-card-preview:hover {
+      transform: translateY(-4px);
+      border-color: #38bdf8 !important;
+      box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.15);
+    }
+
+    .module-card-description {
+      color: #cbd5e1 !important;
+      font-size: 0.875rem !important;
+      line-height: 1.6 !important;
+    }
+
+    .dashboard-preview-icon {
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      min-height: 48px !important;
+      margin-right: 0 !important;
+    }
+
+    /* ELIMINACIÓN DE FUERZA DE NEGRITA EN TÍTULOS Y REGLAS DE COLOR */
+    .module-title-text span,
+    .module-header-container h5,
+    .module-header-container span {
+      font-weight: 400 !important; /* Peso visual uniforme para todos los módulos */
+      color: #f8fafc !important;
+    }
+
+    .text-warning,
+    h3.text-warning,
+    h4.text-warning,
+    h5.text-warning,
+    h6.text-warning,
+    div.text-warning,
+    span.text-warning {
+      color: #f8fafc !important;
+    }
+
+    .text-danger {
+      color: #38bdf8 !important;
+    }
+    /* ==========================================================================
+   ESTANDARIZACIÓN DEFINITIVA DEL PANEL DE RESULTADOS DERECHO (MÓDULOS 1, 2 Y 3)
+   ========================================================================== */
+
+/* 1. Títulos superiores de cada tarjeta derecha */
+.card .param-title,
+.card div[class*="title"],
+.card .text-uppercase {
+  font-size: 0.725rem !important; /* 11.6px Unificado */
+  font-weight: 600 !important;
+  color: #94a3b8 !important; /* Gris Slate fino */
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 0.35rem !important;
+}
+
+/* 2. Valores numéricos y texto destacado principal */
+.param-value,
+.card .fs-4,
+.card .fs-5,
+.card span[id*="-val"],
+.card div[id*="-val"] {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 1.15rem !important; /* 18.4px Unificado */
+  font-weight: 700 !important;
+  color: #38bdf8 !important; /* Azul Cyan Industrial unificado */
+  letter-spacing: -0.02em !important;
+  margin-top: 0.15rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+/* 3. Textos secundarios dentro del valor (ej. unidades "mm", "°", "/") */
+.param-value span,
+.param-value .text-secondary,
+.card .fs-5.text-secondary {
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+}
+
+/* 4. Leyendas de estado y datos complementarios (parte inferior de tarjeta) */
+.param-subtitle,
+.card .param-subtitle,
+.card .text-success,
+.card .text-info {
+  font-size: 0.75rem !important; /* 12px Unificado */
+  font-weight: 500 !important;
+  margin-top: 0.25rem !important;
+}
+
+/* 5. Altura y Relleno Simétrico de las Tarjetas Derechas */
+.col-lg-6 .card,
+.col-lg-7 .card {
+  padding: 0.85rem 1rem !important;
+  margin-bottom: 0.75rem !important;
+  text-align: center !important;
+}
+/* ==========================================================================
+   HOMOGENEIZACIÓN STRICTA DE TAMAÑO DE NÚMEROS (DERECHA)
+   ========================================================================== */
+
+/* Forzar tamaño idéntico en todos los valores numéricos principales */
+.card .param-value,
+.card [id$="-val"],
+.card [id*="-val"],
+.card .fs-4,
+.card .fs-5,
+.card div[class*="param-value"] {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 1.2rem !important; /* Mismo tamaño exacto para todos */
+  font-weight: 700 !important;
+  color: #38bdf8 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+}
+
+/* Forzar que las unidades (mm, °, m/s) mantengan escala proporcional */
+.card .param-value span,
+.card [id*="-val"] span,
+.card .param-unit {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: #64748b !important;
+  margin-left: 0.2rem !important;
+}
+/* ==========================================================================
+   BARRA HUD CAD INTEGRADA (FILA ÚNICA & ESTILO SLATE CYAN)
+   ========================================================================== */
+.cad-header-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-bottom: none !important;
+  border-radius: 6px 6px 0 0 !important;
+  padding: 6px 10px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.cad-tools-group {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 3px !important;
+  white-space: nowrap !important;
+}
+
+.hud-btn {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #94a3b8 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  padding: 2px 6px !important;
+  height: 24px !important;
+  line-height: 1 !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease-in-out !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.hud-btn:hover {
+  background-color: #334155 !important;
+  color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+}
+
+.hud-btn.active {
+  background-color: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+}
+
+.hud-divider {
+  display: inline-block !important;
+  width: 1px !important;
+  height: 14px !important;
+  background-color: #334155 !important;
+  margin: 0 3px !important;
+}
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- BARRA LATERAL CON LOGO PERMANENTE -->
+    <aside class="sidebar">
+      <a href="#" class="sidebar-brand" data-bs-toggle="modal" data-bs-target="#dashboardModal" title="Ver pantalla completa de módulos">
+        <!-- ÍCONO ENGRANE PERMANENTE -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="nav-text">ToolMaker CAM</span>
+      </a>
+
+      <ul class="sidebar-nav">
+        <!-- MÓDULO 1 -->
+        <li class="sidebar-item">
+          <a href="/calculadora-muelas" class="sidebar-link {% if active_module == 1 %}active{% endif %}" title="Módulo 1: Operaciones & Muelas">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <rect x="3" y="7" width="18" height="2" fill="#38bdf8"/>
+            </svg>
+            <span class="nav-text">Mód. 1: Operaciones & Muelas</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 2 -->
+        <li class="sidebar-item">
+          <a href="/geometria-herramienta" class="sidebar-link {% if active_module == 2 %}active{% endif %}" title="Módulo 2: Geometría de Fresas">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
+            </svg>
+            <span class="nav-text">Mód. 2: Geometría Fresas</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 3 -->
+        <li class="sidebar-item">
+          <a href="/geometria-brocas" class="sidebar-link {% if active_module == 3 %}active{% endif %}" title="Módulo 3: Brocas de Carburo">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M12 3 L8 8" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M12 3 L16 8" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M8 11 L16 15" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 16 L16 20" stroke="#38bdf8" stroke-width="1.5"/>
+            </svg>
+            <span class="nav-text">Mód. 3: Brocas Carburo</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <div class="main-wrapper">
+      <main class="container-fluid px-4 py-4">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL PANTALLA COMPLETA -->
+  <div class="modal fade" id="dashboardModal" tabindex="-1" aria-labelledby="dashboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        
+        <div class="modal-header border-bottom px-5 py-3" style="border-color: #334155 !important; background-color: #0f172a;">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-3 fs-4" id="dashboardModalLabel">
+            <svg style="width:30px; height:30px;" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>ToolMaker CAM Studio — Suite de Módulos</span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-5 d-flex align-items-center justify-content-center">
+          <div class="container" style="max-width: 1200px;">
+            <div class="row g-4 justify-content-center">
+              
+              <!-- MINIVISTA MÓDULO 1 -->
+              <div class="col-lg-4 col-md-6">
+                <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-center mb-3">
+                      <div class="p-3 rounded-circle" style="background-color: #0b1120; border: 1px solid #334155;">
+                        <svg class="dashboard-preview-icon" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                          <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                          <rect x="3" y="7" width="18" height="2" fill="#38bdf8"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <h5 class="text-white mb-3 fs-5">Módulo 1: Operaciones & Muelas</h5>
+                    <p class="module-card-description mb-4">
+                      Monitoreo de parámetros físicos de rectificado CNC (V<sub>s</sub>, cargas de Spindle, R<sub>a</sub>, Q'<sub>w</sub>), tacómetros radiales SVG, render 2D de muelas (1V1, 1A1, 11V9) y gráficos de potencia por pasada.
+                    </p>
+                  </div>
+                  <a href="/calculadora-muelas" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 1</a>
+                </div>
+              </div>
+
+              <!-- MINIVISTA MÓDULO 2 -->
+              <div class="col-lg-4 col-md-6">
+                <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-center mb-3">
+                      <div class="p-3 rounded-circle" style="background-color: #0b1120; border: 1px solid #334155;">
+                        <svg class="dashboard-preview-icon" viewBox="0 0 24 24" fill="none">
+                          <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8"/>
+                          <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#38bdf8" stroke-width="1.5"/>
+                          <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#38bdf8" stroke-width="1.5"/>
+                          <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#38bdf8" stroke-width="1.5"/>
+                          <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <h5 class="text-white mb-3 fs-5">Módulo 2: Geometría de Fresas</h5>
+                    <p class="module-card-description mb-4">
+                      Configuración geométrica para fresas cilíndricas planas, esféricas, toroidales y cónicas. Calcula el Índice de Rigidez (I<sub>z</sub>), asignación de radio de protección y perfil 2D en Canvas.
+                    </p>
+                  </div>
+                  <a href="/geometria-herramienta" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 2</a>
+                </div>
+              </div>
+
+              <!-- MINIVISTA MÓDULO 3 -->
+              <div class="col-lg-4 col-md-6">
+                <div class="card module-card-preview h-100 p-4 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <div class="d-flex justify-content-center mb-3">
+                      <div class="p-3 rounded-circle" style="background-color: #0b1120; border: 1px solid #334155;">
+                        <svg class="dashboard-preview-icon" viewBox="0 0 24 24" fill="none">
+                          <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                          <path d="M12 3 L8 8" stroke="#38bdf8" stroke-width="1.8"/>
+                          <path d="M12 3 L16 8" stroke="#38bdf8" stroke-width="1.8"/>
+                          <path d="M8 11 L16 15" stroke="#38bdf8" stroke-width="1.5"/>
+                          <path d="M8 16 L16 20" stroke="#38bdf8" stroke-width="1.5"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <h5 class="text-white mb-3 fs-5">Módulo 3: Brocas de Carburo</h5>
+                    <p class="module-card-description mb-4">
+                      Geometría avanzada de brocas de carburo sólido (Split Point DIN 1412-C, fajas guía), estimación de empuje (F<sub>z</sub>) y torque (M<sub>c</sub>) mediante modelo Kienzle y perfil 2D en Canvas.
+                    </p>
+                  </div>
+                  <a href="/geometria-brocas" class="btn btn-outline-info w-100 fw-bold py-2">Ingresar a Módulo 3</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

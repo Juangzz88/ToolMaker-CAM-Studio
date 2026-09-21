@@ -1,0 +1,1041 @@
+{% extends 'base.html' %}
+{% block title %}Módulo 2: Geometría de Herramienta{% endblock %}
+
+{% block content %}
+<!-- Carga de Chart.js para el gráfico radar -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.panel-box {
+    background-color: #111a36 !important;
+    border: 1px solid #2a3a5e !important;
+}
+
+/* HUD FLOTANTE COMPACTO Y ALINEADO (SLATE CYAN) */
+.viewport-hud-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.viewport-hud-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(6px);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.hud-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+    background: #1e293b;
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-divider {
+    width: 1px;
+    height: 14px;
+    background-color: #334155;
+    margin: 0 2px;
+}
+</style>
+
+<div class="row g-3">
+    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN GEOMÉTRICA DE FRESA -->
+    <div class="col-lg-7 col-md-12">
+        <div class="card card-custom p-4 h-100">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(0, 242, 254, 0.15)" stroke="#00f2fe" stroke-width="2"/>
+                        <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#00f2fe" stroke-width="1.5"/>
+                        <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#00f2fe" stroke-width="1.5"/>
+                        <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#00f2fe" stroke-width="1.5"/>
+                        <path d="M8 2 L12 4 L16 2" stroke="#ffea00" stroke-width="1.5"/>
+                    </svg>
+                    <span>Generador de Geometría de Herramienta</span>
+                </h5>
+                
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
+                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+                    
+                    <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
+                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+                </div>
+            </div>
+
+            <!-- SELECTOR PRINCIPAL DE ARQUITECTURA DE FRESA -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold text-accent">Tipo de Herramienta</label>
+                    <select id="tipo_herramienta" class="form-select border-accent fw-bold enter-next">
+                        <option value="plana" selected>Fresa Cilíndrica Plana (Square)</option>
+                        <option value="esferica">Fresa Esférica (Ball Nose)</option>
+                        <option value="toroidal">Fresa Toroidal (Bull Nose)</option>
+                        <option value="conica">Fresa Cónica (Tapered End Mill)</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold">Preset por Material</label>
+                    <select id="preset_material" class="form-select border-info enter-next">
+                        <option value="acero" selected>Aceros / Inox (4 Canales - γf +12°)</option>
+                        <option value="aluminio">Aluminio / No Ferrosos (2 Canales - γf +18°)</option>
+                        <option value="alto_rendimiento">Alto Rendimiento / HRC (5 Canales - γf +8°)</option>
+                    </select>
+                </div>
+            </div>
+
+            <form id="form-geom">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold" id="lbl-diametro-ext">Diámetro Exterior (D1)</label>
+                        <div class="input-group">
+                            <input type="number" id="diametro_ext" class="form-control enter-next" value="6" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6 d-none" id="box-d2-conico">
+                        <label class="form-label w-100 text-center fw-bold text-warning">Diámetro Raíz/Vástago (D2)</label>
+                        <div class="input-group">
+                            <input type="number" id="diametro_d2" class="form-control enter-next" value="12" step="any">
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6" id="box-num-canales">
+                        <label class="form-label w-100 text-center fw-bold">N° de Canales (Z)</label>
+                        <input type="number" id="num_canales" class="form-control enter-next text-center" value="4" step="1" required>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">% Diámetro Núcleo (dc)</label>
+                        <div class="input-group">
+                            <input type="number" id="pct_nucleo" class="form-control enter-next" value="62" step="any" required>
+                            <span class="input-group-text">% D1</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold" id="lbl-long-corte">Longitud de Corte (Lc)</label>
+                        <div class="input-group">
+                            <input type="number" id="longitud_corte" class="form-control enter-next" value="30" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-3 rounded border border-warning panel-box d-none" id="box-conicidad">
+                    <h6 class="text-warning text-center fw-bold mb-2">Ángulo de Conicidad / Flanco</h6>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo por Lado (α)</label>
+                            <div class="input-group">
+                                <input type="number" id="angulo_conicidad" class="form-control enter-next" value="5.0" step="any">
+                                <span class="input-group-text">°/lado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-3 rounded border border-warning panel-box" id="sec-esquina">
+                    <h6 class="text-warning text-center fw-bold mb-2">Geometría de Esquina & Frente</h6>
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-4" id="box-tipo-esquina">
+                            <label class="form-label w-100 text-center fw-bold">Perfil Esquina</label>
+                            <select id="tipo_esquina" class="form-select enter-next">
+                                <option value="radio" selected>Radio (R)</option>
+                                <option value="chaflan">Chaflán (45°)</option>
+                            </select>
+                        </div>
+                        <div class="col-4" id="box-val-esquina">
+                            <label class="form-label w-100 text-center fw-bold" id="lbl-val-esquina">Radio Protec. (R)</label>
+                            <div class="input-group">
+                                <input type="number" id="val_esquina" class="form-control enter-next" value="0.24" step="any" required>
+                                <span class="input-group-text unit-label">mm</span>
+                            </div>
+                        </div>
+                        <div class="col-4" id="box-dish-angle">
+                            <label class="form-label w-100 text-center fw-bold">Concavidad (Dish)</label>
+                            <div class="input-group">
+                                <input type="number" id="dish_angle" class="form-control enter-next" value="2.0" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo Desprendimiento Radial (Rake Angle - γf)</label>
+                            <div class="input-group">
+                                <input type="number" id="rake_radial" class="form-control enter-next" value="12" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-3 rounded border border-secondary panel-box">
+                    <h6 class="text-accent text-center fw-bold mb-2">Geometría Anti-Vibración (Hélice & Indexado)</h6>
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Tipo de Hélice</label>
+                            <select id="tipo_helice" class="form-select enter-next">
+                                <option value="variable" selected>Hélice Variable / Irregular</option>
+                                <option value="estandar">Hélice Estándar (Constante)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo Hélice A (λ1)</label>
+                            <div class="input-group">
+                                <input type="number" id="helice_a" class="form-control enter-next" value="35" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2" id="group-var-helix">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo Hélice B (λ2)</label>
+                            <div class="input-group">
+                                <input type="number" id="helice_b" class="form-control enter-next" value="38" step="any">
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Variación Index (Δθ)</label>
+                            <div class="input-group">
+                                <input type="number" id="delta_index" class="form-control enter-next" value="2.0" step="any">
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3" id="sec-core-taper">
+                    <div class="col-12">
+                        <label class="form-label w-100 text-center fw-bold">Conicidad Núcleo (Core Taper)</label>
+                        <div class="input-group">
+                            <input type="number" id="core_taper_deg" class="form-control enter-next" value="0.5" step="any" required>
+                            <span class="input-group-text">°/lado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-info text-dark fw-bold w-50 py-2" style="background-color: #00f2fe; border: none;">CALCULAR GEOMETRÍA</button>
+                    <button type="button" id="btn-transfer" class="btn btn-warning fw-bold w-50 py-2">USAR EN MÓDULO 1</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: RESULTADOS, CANVA 2D Y GRÁFICO RADAR -->
+    <div class="col-lg-5 col-md-12">
+        <div class="card card-custom p-4 h-100 text-center">
+            <h5 class="text-accent mb-3 text-center fw-bold">Especificación de Filo & Rigidez</h5>
+
+            <!-- TARJETA DEL CANVAS CON HUD FLOTANTE (IGUAL A BROCAS) -->
+            <div class="card p-3 mb-3">
+                <label class="d-block mb-2 text-info fw-bold text-center">📐 PERFIL GEOMÉTRICO 2D EN TIEMPO REAL</label>
+                
+                <div class="viewport-hud-wrapper">
+                    <!-- BARRA FLOTANTE DERECHA UNIFICADA -->
+                    <div class="viewport-hud-toolbar">
+                        <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoom(0.15)">＋</button>
+                        <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoom(-0.15)">－</button>
+                        <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoom()">100%</button>
+                        
+                        <div class="hud-divider"></div>
+                        
+                        <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotas()">📏 Cotas</button>
+                        <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGrid()">🌐 Grid</button>
+                        
+                        <div class="hud-divider"></div>
+
+                        <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNG()">📸 PNG</button>
+                    </div>
+
+                    <div class="bg-dark border border-secondary rounded p-2 d-flex justify-content-center align-items-center" style="min-height: 200px; overflow: hidden; background-color: #080d1e !important;">
+                        <canvas id="canvasPerfilTool" width="520" height="190" class="w-100" style="cursor: grab;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIAGRAMA RADAR INTERACTIVO -->
+            <div class="p-3 rounded border border-accent mb-3 text-center panel-box">
+                <label class="d-block mb-2 text-accent fw-bold">ANÁLISIS MULTIAXIAL DE RENDIMIENTO</label>
+                <div style="max-width: 270px; margin: 0 auto; position: relative; height: 210px;">
+                    <canvas id="radarRendimientoCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="p-3 rounded border border-warning mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-warning fw-bold">PROTECCIÓN DE PUNTA / PERFIL:</label>
+                <span id="res-esquina" class="fs-4 fw-bold text-warning">Radio R0.240</span>
+                <div class="small text-light mt-1" id="box-sub-frente">
+                    <span id="sub-dish-container">Concavidad Frontal (Dish): <span id="res-dish" class="text-info fw-bold">2.0°</span> | </span>Rake Radial: <span id="res-rake" class="text-info fw-bold">12.0°</span>
+                </div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">NÚCLEO PUNTA / RAIZ:</label>
+                <span id="res-dc-punta" class="fs-4 fw-bold status-ok">3.72</span> / <span id="res-dc-raiz" class="fs-4 fw-bold text-info">4.24</span> <span class="small text-light unit-label">mm</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">DIVISIÓN / INDEXADO ENTRE FILOS:</label>
+                <span id="res-index" class="fs-4 fw-bold text-info">88.0° / 92.0°</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">PASO(S) DE HÉLICE (HELIX LEAD):</label>
+                <span id="res-lead" class="fs-4 fw-bold status-warning">26.92 / 24.13</span> <span class="small text-light unit-label">mm</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">ANCHO DE LANDAS (1° Y 2° RELIEF):</label>
+                <span id="res-landa1" class="fs-4 fw-bold status-ok">0.36</span> + <span id="res-landa2" class="fs-4 fw-bold text-info">1.08</span> <span class="small text-light unit-label">mm</span>
+                <div class="small text-light mt-1">Ancho Total de Diente: <span id="res-ancho-total-diente" class="text-accent fw-bold">1.44 mm</span></div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">ÍNDICE DE RIGIDEZ ESTRUCTURAL (Iz):</label>
+                <span id="res-rigidez" class="fs-4 fw-bold status-ok">14.8%</span>
+                <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Rigidez Estándar</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUnit = 'mm';
+let radarChart = null;
+
+let hudScale = 1.0;
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+let showCotas = true;
+let showGrid = true;
+
+// CONTROLES DEL HUD FLOTANTE
+function ajustarZoom(delta) {
+    hudScale = Math.max(0.4, Math.min(8.0, hudScale + delta));
+    dibujarPerfil2DFresa();
+}
+
+function resetZoom() {
+    hudScale = 1.0;
+    panX = 0;
+    panY = 0;
+    dibujarPerfil2DFresa();
+}
+
+function toggleCotas() {
+    showCotas = !showCotas;
+    const btn = document.getElementById('btn-toggle-cotas');
+    if (btn) btn.classList.toggle('active', showCotas);
+    dibujarPerfil2DFresa();
+}
+
+function toggleGrid() {
+    showGrid = !showGrid;
+    const btn = document.getElementById('btn-toggle-grid');
+    if (btn) btn.classList.toggle('active', showGrid);
+    dibujarPerfil2DFresa();
+}
+
+function exportarPNG() {
+    const canvas = document.getElementById('canvasPerfilTool');
+    if (!canvas) return;
+    
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    dibujarGeometriaFresa(tempCtx, tempCanvas.width, tempCanvas.height, false, showCotas);
+
+    const link = document.createElement('a');
+    link.download = 'ToolMaker-Fresa-2D.png';
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+}
+
+function dibujarPerfil2DFresa() {
+    const canvas = document.getElementById('canvasPerfilTool');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    dibujarGeometriaFresa(ctx, canvas.width, canvas.height, showGrid, showCotas);
+}
+
+function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
+    const canvas = ctx.canvas;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    const displayWidth = Math.round(rect.width * dpr);
+    const displayHeight = Math.round(rect.height * dpr);
+
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+
+    // GRID DINÁMICO SEGÚN PAN Y ZOOM
+    if (renderGrid) {
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
+        ctx.lineWidth = 1;
+        const gridSize = 16 * hudScale;
+
+        const offsetX = (w / 2 + panX) % gridSize;
+        const offsetY = (h / 2 + panY) % gridSize;
+
+        for (let x = offsetX; x < w; x += gridSize) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = offsetY; y < h; y += gridSize) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+    }
+
+    ctx.save();
+    // APLICACIÓN DE PAN Y ZOOM EN EL ESPACIO TRANSFORMADO
+    ctx.translate(w / 2 + panX, h / 2 + panY);
+    ctx.scale(hudScale, hudScale);
+
+    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 6.0);
+    const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 12.0);
+    const zFlutes = parseInt(document.getElementById('num_canales')?.value || 4);
+    const lcInput = parseFloat(document.getElementById('longitud_corte')?.value || 30.0);
+    const tipoTool = document.getElementById('tipo_herramienta')?.value || 'plana';
+    const heliceA = parseFloat(document.getElementById('helice_a')?.value || 35.0);
+    const valEsq = parseFloat(document.getElementById('val_esquina')?.value || 0.24);
+
+    const scale = 65 / Math.max(d1, lcInput * 0.38);
+    const toolH = Math.min(50, Math.max(24, d1 * scale));
+    const toolHD2 = (tipoTool === 'conica') ? Math.min(58, Math.max(28, d2 * scale)) : toolH;
+
+    const lenFlute = Math.min(160, Math.max(80, lcInput * scale * 0.85));
+    const lenShank = Math.min(100, Math.max(60, lenFlute * 0.7));
+    const totalLen = lenShank + lenFlute;
+
+    const x0 = -totalLen / 2;
+    const xJoint = x0 + lenShank;
+    const xTip = xJoint + lenFlute;
+    const y0 = -toolHD2 / 2;
+    const yCut0 = -toolH / 2;
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+    ctx.lineWidth = 1.8;
+
+    const chamfer = 3;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0 + chamfer);
+    ctx.lineTo(x0 + chamfer, y0);
+    ctx.lineTo(xJoint, y0);
+    ctx.lineTo(xJoint, y0 + toolHD2);
+    ctx.lineTo(x0 + chamfer, y0 + toolHD2);
+    ctx.lineTo(x0, y0 + toolHD2 - chamfer);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.beginPath();
+    ctx.moveTo(xJoint, y0);
+    ctx.lineTo(xJoint, y0 + toolHD2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.beginPath();
+
+    if (tipoTool === 'conica') {
+        ctx.moveTo(xJoint, y0);
+        ctx.lineTo(xTip, yCut0);
+        ctx.lineTo(xTip, yCut0 + toolH);
+        ctx.lineTo(xJoint, y0 + toolHD2);
+    } else if (tipoTool === 'esferica') {
+        const radiusTip = toolH / 2;
+        ctx.moveTo(xJoint, yCut0);
+        ctx.lineTo(xTip - radiusTip, yCut0);
+        ctx.arc(xTip - radiusTip, 0, radiusTip, -Math.PI / 2, Math.PI / 2, false);
+        ctx.lineTo(xJoint, yCut0 + toolH);
+    } else if (tipoTool === 'toroidal') {
+        // Fresa Toroidal (Bull Nose): Cilindro plano con esquinas redondeadas R
+        const rTor = Math.min(toolH * 0.4, valEsq * scale);
+        
+        ctx.moveTo(xJoint, yCut0);
+        ctx.lineTo(xTip - rTor, yCut0);
+        // Radio Esquina Superior
+        ctx.arc(xTip - rTor, yCut0 + rTor, rTor, -Math.PI / 2, 0, false);
+        // Frente Plano Frontal
+        ctx.lineTo(xTip, -yCut0 - rTor);
+        // Radio Esquina Inferior
+        ctx.arc(xTip - rTor, -yCut0 - rTor, rTor, 0, Math.PI / 2, false);
+        ctx.lineTo(xJoint, -yCut0);
+    } else {
+        ctx.moveTo(xJoint, yCut0);
+        ctx.lineTo(xTip, yCut0);
+        ctx.lineTo(xTip, yCut0 + toolH);
+        ctx.lineTo(xJoint, yCut0 + toolH);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.lineWidth = 1.2;
+    const pasoVisual = Math.max(14, 30 - (heliceA * 0.3));
+    for (let x = xJoint + 8; x < xTip - 4; x += pasoVisual) {
+        ctx.beginPath();
+        ctx.moveTo(x, yCut0);
+        ctx.lineTo(x + (heliceA * 0.3), yCut0 + toolH);
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x0 - 12, 0);
+    ctx.lineTo(xTip + 20, 0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (renderCotas) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "JetBrains Mono", monospace';
+
+        const dec = (currentUnit === 'in') ? 4 : 3;
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0 - 8, y0);
+        ctx.lineTo(x0 - 8, y0 + toolHD2);
+        ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Ø${d1.toFixed(dec)}`, x0 - 13, 0);
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        
+        ctx.beginPath();
+        ctx.moveTo(xJoint, yCut0 - 8);
+        ctx.lineTo(xTip, yCut0 - 8);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(xJoint, yCut0 - 12); ctx.lineTo(xJoint, yCut0 - 4);
+        ctx.moveTo(xTip, yCut0 - 12);   ctx.lineTo(xTip, yCut0 - 4);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`Lc ${lcInput.toFixed(dec)}`, xJoint + lenFlute / 2, yCut0 - 12);
+    }
+    ctx.restore();
+    ctx.restore();
+}
+
+// INICIALIZACIÓN Y EVENTOS PAN & ZOOM DIRIGIDOS AL CURSOR (FRESA)
+document.addEventListener('DOMContentLoaded', function() {
+    const cvs = document.getElementById('canvasPerfilTool');
+    if (cvs) {
+        cvs.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            cvs.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            dibujarPerfil2DFresa();
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                if (cvs) cvs.style.cursor = 'grab';
+            }
+        });
+
+        // ZOOM DIRIGIDO AL PUNTO DEL CURSOR
+        cvs.addEventListener('wheel', function(e) {
+            e.preventDefault();
+
+            const rect = cvs.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - (rect.width / 2);
+            const mouseY = e.clientY - rect.top - (rect.height / 2);
+
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+            const newScale = Math.max(0.4, Math.min(8.0, hudScale * zoomFactor));
+
+            panX = mouseX - (mouseX - panX) * (newScale / hudScale);
+            panY = mouseY - (mouseY - panY) * (newScale / hudScale);
+
+            hudScale = newScale;
+            dibujarPerfil2DFresa();
+        }, { passive: false });
+    }
+
+    inicializarGraficoRadar();
+    document.getElementById('tipo_herramienta').dispatchEvent(new Event('change'));
+});
+
+function inicializarGraficoRadar() {
+    const ctx = document.getElementById('radarRendimientoCanvas');
+    if (!ctx) return;
+
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Rigidez (Iz)', 'Evacuación Viruta', 'Acabado (Ra)', 'Anti-Vibración', 'Vida de Muela'],
+            datasets: [{
+                label: 'Rendimiento Geométrico %',
+                data: [75, 70, 80, 85, 75],
+                backgroundColor: 'rgba(0, 242, 254, 0.25)',
+                borderColor: '#00f2fe',
+                pointBackgroundColor: '#ffea00',
+                pointBorderColor: '#ffffff',
+                pointHoverBackgroundColor: '#ffffff',
+                pointHoverBorderColor: '#00f2fe',
+                borderWidth: 2,
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.15)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.15)' },
+                    pointLabels: { 
+                        color: '#ffffff', 
+                        font: { size: 9, weight: 'bold', family: 'Segoe UI' } 
+                    },
+                    ticks: { display: false },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+function actualizarGraficoRadar(rigidezRelativa, z, pctNucleo, tipoHelice, rakeRadial) {
+    if (!radarChart) return;
+
+    const rigidezScore = Math.min(100, Math.max(10, rigidezRelativa * 5));
+    const evacuacionScore = Math.min(100, Math.max(10, 110 - (z * 10) - (pctNucleo * 0.5)));
+    const acabadoScore = Math.min(100, Math.max(10, (z * 18) + (rakeRadial * 1.5)));
+    const antiVibracionScore = (tipoHelice === 'variable') ? 95 : 50;
+    const vidaMuelaScore = Math.min(100, Math.max(20, (pctNucleo * 1.1) + (z * 5)));
+
+    radarChart.data.datasets[0].data = [
+        Math.round(rigidezScore),
+        Math.round(evacuacionScore),
+        Math.round(acabadoScore),
+        Math.round(antiVibracionScore),
+        Math.round(vidaMuelaScore)
+    ];
+    radarChart.update();
+}
+
+function calcularLongitudCorteAutomatica() {
+    const tipoTool = document.getElementById('tipo_herramienta').value;
+    if (tipoTool !== 'conica') return;
+
+    const d1 = parseFloat(document.getElementById('diametro_ext').value || 0);
+    const d2 = parseFloat(document.getElementById('diametro_d2').value || 0);
+    const ang = parseFloat(document.getElementById('angulo_conicidad').value || 0);
+
+    if (d2 > d1 && ang > 0) {
+        const radAng = ang * Math.PI / 180.0;
+        const lcCalculado = (d2 - d1) / (2.0 * Math.sin(radAng));
+        const dec = (currentUnit === 'in') ? 4 : 3;
+        document.getElementById('longitud_corte').value = lcCalculado.toFixed(dec);
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('enter-next')) {
+            e.preventDefault();
+
+            const inputs = Array.from(document.querySelectorAll('.enter-next'))
+                .filter(el => el.offsetParent !== null && !el.disabled && el.type !== 'hidden');
+
+            const currentIndex = inputs.indexOf(activeElement);
+            if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+                const nextInput = inputs[currentIndex + 1];
+                nextInput.focus();
+                if (nextInput.select) nextInput.select();
+            } else {
+                ejecutarCalculoGeometria();
+            }
+        }
+    }
+});
+
+['diametro_ext', 'diametro_d2', 'angulo_conicidad', 'pct_nucleo', 'num_canales', 'rake_radial', 'longitud_corte', 'val_esquina', 'helice_a'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', function() {
+            const tipoTool = document.getElementById('tipo_herramienta').value;
+            const d1 = parseFloat(document.getElementById('diametro_ext').value || 0);
+            const valEsqInput = document.getElementById('val_esquina');
+            const dec = (currentUnit === 'in') ? 4 : 3;
+
+            if (tipoTool === 'conica') {
+                calcularLongitudCorteAutomatica();
+            } else if (tipoTool === 'esferica' && id === 'diametro_ext') {
+                if (valEsqInput) valEsqInput.value = (d1 / 2.0).toFixed(dec);
+            } else if (tipoTool === 'plana' && id === 'diametro_ext' && d1 > 0) {
+                const radioProteccion = d1 * 0.04;
+                if (valEsqInput) valEsqInput.value = radioProteccion.toFixed(dec);
+            }
+            ejecutarCalculoGeometria();
+        });
+    }
+});
+
+document.getElementById('tipo_herramienta').addEventListener('change', function() {
+    const val = this.value;
+    const boxTipoEsq = document.getElementById('box-tipo-esquina');
+    const boxValEsq = document.getElementById('box-val-esquina');
+    const boxDish = document.getElementById('box-dish-angle');
+    const subDishContainer = document.getElementById('sub-dish-container');
+    const valEsqInput = document.getElementById('val_esquina');
+    const boxConicidad = document.getElementById('box-conicidad');
+    const boxD2Conico = document.getElementById('box-d2-conico');
+    const secCoreTaper = document.getElementById('sec-core-taper');
+    const lblDiamExt = document.getElementById('lbl-diametro-ext');
+    const lblLc = document.getElementById('lbl-long-corte');
+    const inputLc = document.getElementById('longitud_corte');
+
+    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
+    const dec = (currentUnit === 'in') ? 4 : 3;
+
+    if (val === 'conica') {
+        boxConicidad.classList.remove('d-none');
+        boxD2Conico.classList.remove('d-none');
+        secCoreTaper.classList.add('d-none');
+        lblDiamExt.textContent = "Diámetro Punta (D1)";
+        lblLc.textContent = "Long. Corte Calculada (Lc)";
+        inputLc.disabled = true;
+        inputLc.style.backgroundColor = "#1a264a";
+        inputLc.style.color = "#ffea00";
+        
+        boxTipoEsq.classList.remove('d-none');
+        boxDish.classList.remove('d-none');
+        if (subDishContainer) subDishContainer.classList.remove('d-none');
+        boxValEsq.classList.remove('d-none');
+        valEsqInput.disabled = false;
+        
+        calcularLongitudCorteAutomatica();
+    } else {
+        boxConicidad.classList.add('d-none');
+        boxD2Conico.classList.add('d-none');
+        secCoreTaper.classList.remove('d-none');
+        lblDiamExt.textContent = "Diámetro Exterior (D1)";
+        lblLc.textContent = "Longitud de Corte (Lc)";
+        inputLc.disabled = false;
+        inputLc.style.backgroundColor = "";
+        inputLc.style.color = "";
+
+        if (val === 'esferica') {
+            boxTipoEsq.classList.add('d-none');
+            boxDish.classList.add('d-none');
+            if (subDishContainer) subDishContainer.classList.add('d-none');
+            boxValEsq.classList.remove('d-none');
+            valEsqInput.value = (d1 / 2.0).toFixed(dec);
+            valEsqInput.disabled = true;
+            document.getElementById('lbl-val-esquina').textContent = 'Radio Esférico (R=D/2)';
+        } else if (val === 'toroidal') {
+            boxTipoEsq.classList.add('d-none');
+            boxDish.classList.remove('d-none');
+            if (subDishContainer) subDishContainer.classList.remove('d-none');
+            boxValEsq.classList.remove('d-none');
+            valEsqInput.disabled = false;
+            if (parseFloat(valEsqInput.value) >= d1 / 2.0) valEsqInput.value = (d1 * 0.1).toFixed(dec);
+            document.getElementById('lbl-val-esquina').textContent = 'Radio Toroidal (R)';
+        } else {
+            boxTipoEsq.classList.remove('d-none');
+            boxDish.classList.remove('d-none');
+            if (subDishContainer) subDishContainer.classList.remove('d-none');
+            boxValEsq.classList.remove('d-none');
+            valEsqInput.disabled = false;
+            
+            const radioProteccion = d1 * 0.04;
+            valEsqInput.value = radioProteccion.toFixed(dec);
+            document.getElementById('lbl-val-esquina').textContent = document.getElementById('tipo_esquina').value === 'chaflan' ? 'Ancho Chaflán' : 'Radio Protec. (R)';
+        }
+    }
+    ejecutarCalculoGeometria();
+});
+
+document.getElementById('tipo_helice').addEventListener('change', function() {
+    const isVar = (this.value === 'variable');
+    const groupVar = document.getElementById('group-var-helix');
+    if (isVar) groupVar.classList.remove('d-none');
+    else groupVar.classList.add('d-none');
+    ejecutarCalculoGeometria();
+});
+
+document.getElementById('tipo_esquina').addEventListener('change', function() {
+    const lbl = document.getElementById('lbl-val-esquina');
+    if (this.value === 'chaflan') lbl.textContent = 'Ancho Chaflán';
+    else lbl.textContent = (document.getElementById('tipo_herramienta').value === 'plana') ? 'Radio Protec. (R)' : 'Radio (R)';
+    ejecutarCalculoGeometria();
+});
+
+document.getElementById('preset_material').addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'acero') {
+        document.getElementById('num_canales').value = 4;
+        document.getElementById('pct_nucleo').value = 62;
+        document.getElementById('tipo_helice').value = 'variable';
+        document.getElementById('helice_a').value = 35;
+        document.getElementById('helice_b').value = 38;
+        document.getElementById('delta_index').value = 2.0;
+        document.getElementById('rake_radial').value = 12;
+        document.getElementById('dish_angle').value = 2.0;
+    } else if (val === 'aluminio') {
+        document.getElementById('num_canales').value = 2;
+        document.getElementById('pct_nucleo').value = 52;
+        document.getElementById('tipo_helice').value = 'estandar';
+        document.getElementById('helice_a').value = 45;
+        document.getElementById('rake_radial').value = 18;
+        document.getElementById('dish_angle').value = 3.0;
+    } else if (val === 'alto_rendimiento') {
+        document.getElementById('num_canales').value = 5;
+        document.getElementById('pct_nucleo').value = 70;
+        document.getElementById('tipo_helice').value = 'variable';
+        document.getElementById('helice_a').value = 36;
+        document.getElementById('helice_b').value = 39;
+        document.getElementById('delta_index').value = 2.5;
+        document.getElementById('rake_radial').value = 8;
+        document.getElementById('dish_angle').value = 1.5;
+    }
+    document.getElementById('tipo_helice').dispatchEvent(new Event('change'));
+});
+
+document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
+    radio.addEventListener('change', function() {
+        const newUnit = this.value;
+        if (newUnit === currentUnit) return;
+
+        const isToInch = (newUnit === 'in');
+        const factor = isToInch ? (1.0 / 25.4) : 25.4;
+
+        ['diametro_ext', 'diametro_d2', 'longitud_corte', 'val_esquina'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value !== '') {
+                const num = parseFloat(input.value);
+                if (!isNaN(num)) input.value = (num * factor).toFixed(isToInch ? 4 : 3);
+            }
+        });
+
+        currentUnit = newUnit;
+        document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
+        document.getElementById('tipo_herramienta').dispatchEvent(new Event('change'));
+    });
+});
+
+document.getElementById('btn-transfer').addEventListener('click', function() {
+    const tipoTool = document.getElementById('tipo_herramienta').value;
+    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
+    const d2 = parseFloat(document.getElementById('diametro_d2').value || 16);
+    const z = parseInt(document.getElementById('num_canales').value || 4);
+    const pctDc = parseFloat(document.getElementById('pct_nucleo').value || 62);
+    const lc = parseFloat(document.getElementById('longitud_corte').value || 30);
+
+    let dCalc = d1;
+    if (tipoTool === 'conica') dCalc = (d1 + d2) / 2.0;
+
+    const apFlute = (dCalc - (dCalc * (pctDc / 100.0))) / 2.0;
+
+    const toolData = {
+        diametro_fresa: dCalc.toFixed(currentUnit === 'in' ? 4 : 3),
+        num_canales: z,
+        profundidad_canal: apFlute.toFixed(currentUnit === 'in' ? 4 : 3),
+        longitud_corte: lc,
+        unidad: currentUnit
+    };
+
+    localStorage.setItem('toolmaker_active_tool', JSON.stringify(toolData));
+    alert(`Datos de fresa (${tipoTool.toUpperCase()}: Ø${dCalc.toFixed(2)}${currentUnit}, ${z} Canales) enviados a Módulo 1.`);
+    window.location.href = '/calculadora-muelas';
+});
+
+async function ejecutarCalculoGeometria() {
+    const tipoTool = document.getElementById('tipo_herramienta').value;
+    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
+    const d2 = parseFloat(document.getElementById('diametro_d2').value || 16);
+    const z = parseInt(document.getElementById('num_canales').value || 4);
+    const pctDc = parseFloat(document.getElementById('pct_nucleo').value || 62);
+    const lc = parseFloat(document.getElementById('longitud_corte').value || 30);
+    const taper = parseFloat(document.getElementById('core_taper_deg').value || 0.5);
+    const angCon = parseFloat(document.getElementById('angulo_conicidad').value || 5.0);
+    const tipoEsq = document.getElementById('tipo_esquina').value;
+    const tipoHel = document.getElementById('tipo_helice').value;
+    const rake = parseFloat(document.getElementById('rake_radial').value || 12.0);
+    
+    let valEsq = parseFloat(document.getElementById('val_esquina').value || 0.5);
+    if (tipoTool === 'esferica') {
+        valEsq = d1 / 2.0;
+        document.getElementById('val_esquina').value = valEsq.toFixed(currentUnit === 'in' ? 4 : 3);
+    }
+
+    const dish = parseFloat(document.getElementById('dish_angle').value || 2.0);
+
+    let dcPunta = d1 * (pctDc / 100.0);
+    if (tipoTool === 'esferica') dcPunta = dcPunta * 0.75;
+
+    const taperUsado = (tipoTool === 'conica') ? angCon : taper;
+    const dcRaiz = dcPunta + (2.0 * (lc * Math.sin(taperUsado * Math.PI / 180.0)));
+    const l1 = d1 * 0.06;
+    const l2 = d1 * 0.18;
+    const anchoTotal = l1 + l2;
+
+    const dec = (currentUnit === 'in') ? 4 : 3;
+
+    document.getElementById('res-dc-punta').textContent = dcPunta.toFixed(dec);
+    document.getElementById('res-dc-raiz').textContent = dcRaiz.toFixed(dec);
+    document.getElementById('res-landa1').textContent = l1.toFixed(dec);
+    document.getElementById('res-landa2').textContent = l2.toFixed(dec);
+    document.getElementById('res-ancho-total-diente').textContent = anchoTotal.toFixed(dec) + " " + currentUnit;
+    
+    let strEsqLocal = `Radio R${valEsq.toFixed(dec)}`;
+    if (tipoTool === 'esferica') strEsqLocal = `Esférica Completa (R${(d1/2).toFixed(dec)})`;
+    else if (tipoTool === 'toroidal') strEsqLocal = `Toroidal R${valEsq.toFixed(dec)}`;
+    else if (tipoTool === 'conica') {
+        strEsqLocal = `Cónica ${angCon.toFixed(1)}°/lado (D2 Raíz: ${d2.toFixed(dec)})`;
+    }
+    else if (tipoEsq === 'chaflan') strEsqLocal = `Chaflán ${valEsq.toFixed(dec)} x 45°`;
+
+    document.getElementById('res-esquina').textContent = strEsqLocal;
+    document.getElementById('res-dish').textContent = dish.toFixed(1) + "°";
+    document.getElementById('res-rake').textContent = rake.toFixed(1) + "°";
+
+    const rigidezCalc = ((dcPunta / d1) ** 4) * 100.0;
+    actualizarGraficoRadar(rigidezCalc, z, pctDc, tipoHel, rake);
+    dibujarPerfil2DFresa();
+
+    const data = {
+        unidad: currentUnit,
+        tipo_herramienta: tipoTool,
+        diametro_ext: d1,
+        diametro_d2: d2,
+        num_canales: z,
+        tipo_helice: tipoHel,
+        helice_a: parseFloat(document.getElementById('helice_a').value || 35),
+        helice_b: parseFloat(document.getElementById('helice_b').value || 38),
+        delta_index: parseFloat(document.getElementById('delta_index').value || 2.0),
+        pct_nucleo: pctDc,
+        longitud_corte: lc,
+        core_taper_deg: taper,
+        angulo_conicidad: angCon,
+        tipo_esquina: tipoEsq,
+        val_esquina: valEsq,
+        dish_angle: dish,
+        rake_radial: rake
+    };
+
+    try {
+        const res = await fetch('/api/calcular-geometria', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const json = await res.json();
+        if (json.success) {
+            document.getElementById('res-dc-punta').textContent = json.diametro_nucleo_punta;
+            document.getElementById('res-dc-raiz').textContent = json.diametro_nucleo_raiz;
+            document.getElementById('res-index').textContent = json.indexado_str;
+            document.getElementById('res-lead').textContent = json.paso_helice_str;
+            document.getElementById('res-esquina').textContent = json.esquina_str || strEsqLocal;
+            document.getElementById('res-dish').textContent = (json.dish_angle !== undefined ? json.dish_angle : dish.toFixed(1)) + "°";
+            document.getElementById('res-rake').textContent = (json.rake_radial !== undefined ? json.rake_radial : rake.toFixed(1)) + "°";
+            document.getElementById('res-rigidez').textContent = json.rigidez_relativa + "%";
+
+            const estRig = document.getElementById('est-rigidez');
+            estRig.textContent = json.estado_rigidez;
+            estRig.className = "small fw-bold mt-1 " + json.clase_rigidez;
+
+            actualizarGraficoRadar(json.rigidez_relativa, z, pctDc, tipoHel, rake);
+        }
+    } catch (err) {
+        console.error("Error al calcular geometría:", err);
+    }
+}
+
+const formGeom = document.getElementById('form-geom');
+if (formGeom) {
+    formGeom.addEventListener('submit', function(e) {
+        e.preventDefault();
+        ejecutarCalculoGeometria();
+    });
+}
+</script>
+{% endblock %}

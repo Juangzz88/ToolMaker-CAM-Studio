@@ -1,0 +1,844 @@
+{% extends 'base.html' %}
+{% block title %}Módulo 3: Geometría de Brocas de Carburo{% endblock %}
+
+{% block content %}
+<style>
+.panel-box {
+    background-color: #111a36 !important;
+    border: 1px solid #2a3a5e !important;
+}
+
+/* HUD FLOTANTE COMPACTO Y ALINEADO */
+.viewport-hud-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.viewport-hud-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(6px);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.hud-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+    background: #1e293b;
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-divider {
+    width: 1px;
+    height: 14px;
+    background-color: #334155;
+    margin: 0 2px;
+}
+</style>
+
+<div class="row g-3">
+    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE BROCA DE CARBURO -->
+    <div class="col-lg-7 col-md-12">
+        <div class="card card-custom p-4 h-100">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="text-warning mb-0 fw-bold d-flex align-items-center gap-2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(255, 234, 0, 0.15)" stroke="#ffea00" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M12 3 L8 8" stroke="#ffea00" stroke-width="2"/>
+                        <path d="M12 3 L16 8" stroke="#ffea00" stroke-width="2"/>
+                        <path d="M8 11 L16 15" stroke="#ffea00" stroke-width="1.5"/>
+                        <path d="M8 16 L16 20" stroke="#ffea00" stroke-width="1.5"/>
+                    </svg>
+                    <span>Módulo 3: Broca de Carburo Sólido (High Performance)</span>
+                </h5>
+                
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
+                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+                    
+                    <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
+                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+                </div>
+            </div>
+
+            <!-- PRESETS DE MATERIAL Y APLICACIÓN -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold text-warning">Configuración de Fajas (Margins)</label>
+                    <select id="tipo_fajas" class="form-select border-warning fw-bold enter-next">
+                        <option value="2_fajas" selected>2 Fajas Guía (Single Margin - Menor Fricción)</option>
+                        <option value="4_fajas">4 Fajas Guía (Double Margin - Alta Cilíndricidad / >5xD)</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold">Material A Perforar</label>
+                    <select id="preset_material_broca" class="form-select border-info enter-next">
+                        <option value="acero_inox" selected>Aceros / Inox (kc1.1 = 1900 N/mm²)</option>
+                        <option value="aluminio">Aluminio / No Ferrosos (kc1.1 = 700 N/mm²)</option>
+                        <option value="alto_rendimiento">Aceros Duros HRC / Titanium (kc1.1 = 2800 N/mm²)</option>
+                    </select>
+                </div>
+            </div>
+
+            <form id="form-broca">
+                <!-- PARÁMETROS PRINCIPALES DE LA BROCA -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Diámetro Nominal D1 (Tol. h6)</label>
+                        <div class="input-group">
+                            <input type="number" id="diametro_broca" class="form-control enter-next" value="8.0" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Relación de Aspecto (L/D)</label>
+                        <select id="relacion_ld" class="form-select enter-next">
+                            <option value="3">3xD (Corta - Máxima Rigidez)</option>
+                            <option value="5" selected>5xD (Estándar Industrial)</option>
+                            <option value="8">8xD (Profunda - Requiere 4 Fajas)</option>
+                            <option value="12">12xD (Extra Profunda)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Longitud de Canal (Flute Lc)</label>
+                        <div class="input-group">
+                            <input type="number" id="longitud_canal" class="form-control enter-next" value="53.0" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Ángulo de Hélice (λ)</label>
+                        <div class="input-group">
+                            <input type="number" id="helice_broca" class="form-control enter-next" value="30" step="any" required>
+                            <span class="input-group-text">°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN GEOMETRÍA DE PUNTA & NÚCLEO -->
+                <div class="p-3 mb-3 rounded border border-warning panel-box">
+                    <h6 class="text-warning text-center fw-bold mb-2">Geometría de Punta & Núcleo (Carburo)</h6>
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo de Punta (σ)</label>
+                            <div class="input-group">
+                                <input type="number" id="angulo_punta" class="form-control enter-next" value="140" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">% Núcleo en Punta (dw)</label>
+                            <div class="input-group">
+                                <input type="number" id="pct_nucleo_broca" class="form-control enter-next" value="28" step="any" required>
+                                <span class="input-group-text">% D1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Conicidad de Núcleo (Back Taper)</label>
+                            <div class="input-group">
+                                <input type="number" id="back_taper_val" class="form-control enter-next" value="0.08" step="any" required>
+                                <span class="input-group-text">mm/100mm</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Incidencia Primaria (α1)</label>
+                            <div class="input-group">
+                                <input type="number" id="incidencia_primaria" class="form-control enter-next" value="9.0" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ADELGAZAMIENTO DE ALMA (SPLIT POINT DIN 1412-C) -->
+                <div class="p-3 mb-3 rounded border border-secondary panel-box">
+                    <h6 class="text-accent text-center fw-bold mb-2">Adelgazamiento de Alma (Split Point DIN 1412-C)</h6>
+                    
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo Cincel (Chisel Angle - ψ)</label>
+                            <div class="input-group">
+                                <input type="number" id="angulo_cincel" class="form-control enter-next" value="130" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Ángulo Muela Thinning</label>
+                            <div class="input-group">
+                                <input type="number" id="angulo_muela_thinning" class="form-control enter-next" value="35" step="any" required>
+                                <span class="input-group-text">°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label w-100 text-center fw-bold">Calidad Acabado Canal (Flute Finish)</label>
+                            <select id="acabado_canal" class="form-select enter-next">
+                                <option value="pulido" selected>Pulido Espejo (Ra &lt; 0.1 µm - Para Carburo)</option>
+                                <option value="estandar">Rectificado Estándar (Ra 0.3 µm)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN CONDICIONES DE CORTE -->
+                <div class="p-3 mb-3 rounded border border-info panel-box">
+                    <h6 class="text-info text-center fw-bold mb-2">Condiciones de Cinetismo y Avance</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Velocidad Corte (Vc)</label>
+                            <div class="input-group">
+                                <input type="number" id="vc_corte" class="form-control enter-next" value="90" step="any" required>
+                                <span class="input-group-text" id="unit-vc">m/min</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label w-100 text-center fw-bold">Avance por Rev. (fn)</label>
+                            <div class="input-group">
+                                <input type="number" id="fn_avance" class="form-control enter-next" value="0.18" step="any" required>
+                                <span class="input-group-text" id="unit-fn">mm/rev</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-warning text-dark fw-bold w-50 py-2">CALCULAR BROCA DE CARBURO</button>
+                    <button type="button" id="btn-transfer-broca" class="btn btn-outline-info fw-bold w-50 py-2">⚡ USAR EN MÓDULO 1</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: RESULTADOS TÉCNICOS Y CANVAS 2D -->
+    <div class="col-lg-5 col-md-12">
+        <div class="card card-custom p-4 h-100 text-center">
+            <h5 class="text-warning mb-3 text-center fw-bold">Especificación de Broca CNC</h5>
+
+            <!-- TARJETA DEL CANVAS CON HUD FLOTANTE INTEGRADO -->
+            <div class="card p-3 mb-3">
+                <label class="d-block mb-2 text-info fw-bold">📐 PERFIL GEOMÉTRICO 2D EN TIEMPO REAL</label>
+                
+                <div class="viewport-hud-wrapper">
+                    <!-- BARRA FLOTANTE DERECHA UNIFICADA -->
+                    <div class="viewport-hud-toolbar">
+                        <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoom(0.15)">＋</button>
+                        <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoom(-0.15)">－</button>
+                        <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoom()">100%</button>
+                        
+                        <div class="hud-divider"></div>
+                        
+                        <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotas()">📏 Cotas</button>
+                        <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGrid()">🌐 Grid</button>
+                        
+                        <div class="hud-divider"></div>
+
+                        <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNG()">📸 PNG</button>
+                    </div>
+
+                    <div style="background-color: #080d1e; border-radius: 6px; padding: 6px; overflow: hidden;">
+                        <canvas id="canvas-broca" width="520" height="190" class="w-100" style="cursor: grab;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTADOS TÉCNICOS DERECHOS -->
+            <div class="p-2 rounded border border-danger mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">EMPUJE AXIAL (Fz) / TORQUE (Mc):</label>
+                <span id="res-fz" class="fs-5 fw-bold text-danger">0 N</span> | <span id="res-mc" class="fs-5 fw-bold text-warning">0.0 N·m</span>
+                <div id="est-fz" class="small fw-bold mt-1 text-light">Carga segura</div>
+            </div>
+
+            <div class="p-3 rounded border border-warning mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-warning fw-bold">AJUSTE VÁSTAGO & TOLERANCIA:</label>
+                <span id="res-tol-vastago" class="fs-4 fw-bold text-warning">Ø8.000 h6 (Runout &lt; 0.003 mm)</span>
+                <div class="small text-light mt-1">Apto para Conos Térmicos (Shrink-Fit) e Hidráulicos</div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">NÚCLEO PUNTA ➔ RAIZ (BACK TAPER):</label>
+                <span id="res-core-punta" class="fs-4 fw-bold status-ok">2.24</span> ➔ <span id="res-core-raiz" class="fs-4 fw-bold text-info">2.28</span> <span class="small text-light unit-label">mm</span>
+                <div class="small text-light mt-1">Conicidad Trasera Acumulada: <span id="res-taper-acum" class="text-accent fw-bold">+0.042 mm</span></div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">ADELGAZAMIENTO DE ALMA (SPLIT POINT):</label>
+                <span id="res-ancho-split" class="fs-4 fw-bold status-warning">1.12 mm</span>
+                <div class="small text-light mt-1">Arista Transversal Reducida al <span id="res-pct-cincel" class="text-info fw-bold">8% D1</span> (Auto-centrante)</div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">PASO DE HÉLICE (HELIX LEAD):</label>
+                <span id="res-lead-broca" class="fs-4 fw-bold text-info">43.53</span> <span class="small text-light unit-label">mm</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">ESTABILIDAD Y FAJAS GUÍA:</label>
+                <span id="res-estabilidad-fajas" class="fs-4 fw-bold status-ok">2 Fajas (Uso General)</span>
+                <div id="sub-estabilidad-fajas" class="small text-light mt-1">Baja Fricción Axial</div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary text-center panel-box">
+                <label class="d-block mb-1 text-light fw-bold">ALTURA DE PUNTA AXIAL (POINT HEIGHT):</label>
+                <span id="res-altura-punta" class="fs-4 fw-bold status-ok">1.46</span> <span class="small text-light unit-label">mm</span>
+                <div class="small text-light mt-1">Proyección Z desde el centro del cincel al borde</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// VARIABLES GLOBALES DE UNIDAD Y ZOOM / PAN (DECLARADAS CORRECTAMENTE)
+let currentUnit = 'mm';
+let hudScale = 1.0;
+let panX = 0;
+let panY = 0;
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+let showCotas = true;
+let showGrid = true;
+
+const kcMateriales = {
+    acero_inox: 1900,
+    aluminio: 700,
+    alto_rendimiento: 2800
+};
+
+// CONTROLES DEL HUD FLOTANTE
+function ajustarZoom(delta) {
+    hudScale = Math.max(0.4, Math.min(6.0, hudScale + delta));
+    dibujarBroca2D();
+}
+
+function resetZoom() {
+    hudScale = 1.0;
+    panX = 0;
+    panY = 0;
+    dibujarBroca2D();
+}
+
+function toggleCotas() {
+    showCotas = !showCotas;
+    const btn = document.getElementById('btn-toggle-cotas');
+    if (btn) btn.classList.toggle('active', showCotas);
+    dibujarBroca2D();
+}
+
+function toggleGrid() {
+    showGrid = !showGrid;
+    const btn = document.getElementById('btn-toggle-grid');
+    if (btn) btn.classList.toggle('active', showGrid);
+    dibujarBroca2D();
+}
+
+function exportarPNG() {
+    const canvas = document.getElementById('canvas-broca');
+    if (!canvas) return;
+    
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    dibujarGeometria(tempCtx, tempCanvas.width, tempCanvas.height, false, showCotas);
+
+    const link = document.createElement('a');
+    link.download = 'ToolMaker-Broca-2D.png';
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+}
+
+// MOTOR DE DIBUJO VECTORIAL 2D CON SOPORTE COMPLETO DE PAN Y ZOOM
+function dibujarBroca2D() {
+    const canvas = document.getElementById('canvas-broca');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    dibujarGeometria(ctx, canvas.width, canvas.height, showGrid, showCotas);
+}
+
+function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
+    const canvas = ctx.canvas;
+
+    // 1. AJUSTE DE RESOLUCIÓN HIGH-DPI / RETINA CRISP
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    const displayWidth = Math.round(rect.width * dpr);
+    const displayHeight = Math.round(rect.height * dpr);
+
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+
+    // 2. CUADRÍCULA METÁLICA CON DESPLAZAMIENTO DINÁMICO (GRID)
+    if (renderGrid) {
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
+        ctx.lineWidth = 1;
+        const gridSize = 16 * hudScale;
+        
+        const offsetX = (w / 2 + panX) % gridSize;
+        const offsetY = (h / 2 + panY) % gridSize;
+
+        for (let x = offsetX; x < w; x += gridSize) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = offsetY; y < h; y += gridSize) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+    }
+
+    ctx.save();
+    // APLICACIÓN DIRECTA DE TRASLACIÓN PAN Y ZOOM VECTORIAL
+    ctx.translate(w / 2 - 15 + panX, h / 2 + panY);
+    ctx.scale(hudScale, hudScale);
+
+    // LECTURA DE VALORES DESDE EL FORMULARIO
+    const d1 = parseFloat(document.getElementById('diametro_broca')?.value || 8.0);
+    const lc = parseFloat(document.getElementById('longitud_canal')?.value || 53.0);
+    const sig = parseFloat(document.getElementById('angulo_punta')?.value || 140);
+    const hel = parseFloat(document.getElementById('helice_broca')?.value || 30);
+
+    // DIMENSIONAMIENTO Y ESCALADO PROPORCIONAL
+    const scale = 52 / Math.max(d1, lc * 0.38);
+    const toolH = Math.min(48, d1 * scale);
+    
+    const lenFlute = Math.min(130, lc * scale * 0.85); // Parte hélice
+    const lenShank = Math.min(100, lenFlute * 0.75);   // Zanco liso
+    const totalLen = lenShank + lenFlute;
+    
+    const x0 = -totalLen / 2;             // Inicio Zanco (Izquierda)
+    const xJoint = x0 + lenShank;          // Unión Zanco / Canal de Corte
+    const y0 = -toolH / 2;
+
+    const radSig = (sig / 2) * Math.PI / 180;
+    const xPunta = Math.min(lenFlute * 0.22, (toolH / 2) / Math.tan(radSig));
+    const apexX = xJoint + lenFlute;       // Vértice Extremo de la Punta
+
+    // =========================================================================
+    // 3. DIBUJO DEL PERFIL DE LA BROCA (ZANCO LISO + CANAL HELICOIDAL)
+    // =========================================================================
+    ctx.strokeStyle = '#38bdf8';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+    ctx.lineWidth = 1.8;
+
+    // A) PERFIL ZANCO LISO
+    const chamfer = 3;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0 + chamfer);
+    ctx.lineTo(x0 + chamfer, y0);
+    ctx.lineTo(xJoint, y0);
+    ctx.lineTo(xJoint, y0 + toolH);
+    ctx.lineTo(x0 + chamfer, y0 + toolH);
+    ctx.lineTo(x0, y0 + toolH - chamfer);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Línea de unión Zanco / Canal
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.beginPath();
+    ctx.moveTo(xJoint, y0);
+    ctx.lineTo(xJoint, y0 + toolH);
+    ctx.stroke();
+
+    // B) PERFIL CANAL DE CORTE Y PUNTA
+    ctx.strokeStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(xJoint, y0);
+    ctx.lineTo(apexX - xPunta, y0);
+    ctx.lineTo(apexX, 0);
+    ctx.lineTo(apexX - xPunta, y0 + toolH);
+    ctx.lineTo(xJoint, y0 + toolH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // C) LÍNEAS HELICOIDALES
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.lineWidth = 1.2;
+    const pasoVisual = Math.max(14, 30 - (hel * 0.35));
+    for (let x = xJoint + 10; x < apexX - xPunta; x += pasoVisual) {
+        ctx.beginPath();
+        ctx.moveTo(x, y0);
+        ctx.lineTo(x + (hel * 0.35), y0 + toolH);
+        ctx.stroke();
+    }
+
+    // D) AFILADO CENTRAL (SPLIT POINT)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(apexX - xPunta, y0 + toolH * 0.25);
+    ctx.lineTo(apexX, 0);
+    ctx.lineTo(apexX - xPunta, y0 + toolH * 0.75);
+    ctx.stroke();
+
+    // E) LÍNEA DE CENTRO TÉCNICA (EJE Z)
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x0 - 15, 0);
+    ctx.lineTo(apexX + 35, 0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // =========================================================================
+    // 4. COTAS TÉCNICAS PLANO ISO DE ALTA PRECISIÓN
+    // =========================================================================
+    if (renderCotas) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "JetBrains Mono", monospace';
+
+        const dec = (currentUnit === 'in') ? 4 : 3;
+
+        // A) Cota Diámetro Zanco ØD1 (Izquierda)
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0 - 8, y0);
+        ctx.lineTo(x0 - 8, y0 + toolH);
+        ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Ø${d1.toFixed(dec)} h6`, x0 - 14, 0);
+
+        // B) Cota Longitud de Canal Lc (Parte Superior)
+        ctx.beginPath();
+        ctx.moveTo(xJoint, y0 - 8);
+        ctx.lineTo(apexX, y0 - 8);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(xJoint, y0 - 12); ctx.lineTo(xJoint, y0 - 4);
+        ctx.moveTo(apexX, y0 - 12);  ctx.lineTo(apexX, y0 - 4);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`Lc ${lc.toFixed(dec)}`, xJoint + lenFlute / 2, y0 - 12);
+
+        // C) COTA DE ÁNGULO DE PUNTA SIG° EXTERIOR
+        const projLen = 32;   
+        const arcRadius = 24; 
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.0;
+
+        ctx.beginPath();
+        ctx.moveTo(apexX, 0);
+        ctx.lineTo(apexX + projLen * Math.cos(radSig), -projLen * Math.sin(radSig));
+        ctx.moveTo(apexX, 0);
+        ctx.lineTo(apexX + projLen * Math.cos(radSig), projLen * Math.sin(radSig));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(apexX, 0, arcRadius, -radSig, radSig, false);
+        ctx.stroke();
+
+        const xTop = apexX + arcRadius * Math.cos(-radSig);
+        const yTop = arcRadius * Math.sin(-radSig);
+        const xBot = apexX + arcRadius * Math.cos(radSig);
+        const yBot = arcRadius * Math.sin(radSig);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(xTop, yTop, 2, 0, 2 * Math.PI); ctx.fill();
+        ctx.beginPath(); ctx.arc(xBot, yBot, 2, 0, 2 * Math.PI); ctx.fill();
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${sig}° SIG`, apexX + arcRadius + 6, 0);
+    }
+
+    ctx.restore();
+    ctx.restore();
+}
+
+// INICIALIZACIÓN DE EVENTOS DEL CANVAS (PAN & ZOOM CON RATÓN)
+document.addEventListener('DOMContentLoaded', function() {
+    const cvs = document.getElementById('canvas-broca');
+    if (cvs) {
+        cvs.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            cvs.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            dibujarBroca2D();
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                if (cvs) cvs.style.cursor = 'grab';
+            }
+        });
+
+        // ZOOM INTERACTIVO ENRUTADO AL PUNTO DEL CURSOR (BROCA)
+cvs.addEventListener('wheel', function(e) {
+    e.preventDefault();
+
+    const rect = cvs.getBoundingClientRect();
+    // Coordenadas del ratón relativas al centro original del Canvas
+    const mouseX = e.clientX - rect.left - (rect.width / 2);
+    const mouseY = e.clientY - rect.top - (rect.height / 2);
+
+    // Factor de zoom
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+    const newScale = Math.max(0.4, Math.min(8.0, hudScale * zoomFactor));
+
+    // Ajusta la posición Pan para que el punto bajo el cursor no se mueva
+    panX = mouseX - (mouseX - panX) * (newScale / hudScale);
+    panY = mouseY - (mouseY - panY) * (newScale / hudScale);
+
+    hudScale = newScale;
+    dibujarBroca2D();
+}, { passive: false });
+    }
+
+    ejecutarCalculoBroca();
+});
+
+// INTERACTIVIDAD Y EVENTOS DEL FORMULARIO
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('enter-next')) {
+            e.preventDefault();
+            const inputs = Array.from(document.querySelectorAll('.enter-next'))
+                .filter(el => el.offsetParent !== null && !el.disabled && el.type !== 'hidden');
+
+            const currentIndex = inputs.indexOf(activeElement);
+            if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+                const nextInput = inputs[currentIndex + 1];
+                nextInput.focus();
+                if (nextInput.select) nextInput.select();
+            } else {
+                ejecutarCalculoBroca();
+            }
+        }
+    }
+});
+
+document.getElementById('relacion_ld').addEventListener('change', function() {
+    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
+    const ld = parseFloat(this.value || 5);
+    const lc = (d1 * ld) + (d1 * 1.6);
+    const dec = currentUnit === 'in' ? 4 : 3;
+    document.getElementById('longitud_canal').value = lc.toFixed(dec);
+    ejecutarCalculoBroca();
+});
+
+document.getElementById('preset_material_broca').addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'acero_inox') {
+        document.getElementById('angulo_punta').value = 140;
+        document.getElementById('helice_broca').value = 30;
+        document.getElementById('pct_nucleo_broca').value = 28;
+        document.getElementById('back_taper_val').value = 0.08;
+        document.getElementById('tipo_fajas').value = '2_fajas';
+        document.getElementById('vc_corte').value = 90;
+        document.getElementById('fn_avance').value = 0.18;
+    } else if (val === 'aluminio') {
+        document.getElementById('angulo_punta').value = 135;
+        document.getElementById('helice_broca').value = 38;
+        document.getElementById('pct_nucleo_broca').value = 22;
+        document.getElementById('back_taper_val').value = 0.10;
+        document.getElementById('tipo_fajas').value = '2_fajas';
+        document.getElementById('vc_corte').value = 220;
+        document.getElementById('fn_avance').value = 0.28;
+    } else if (val === 'alto_rendimiento') {
+        document.getElementById('angulo_punta').value = 145;
+        document.getElementById('helice_broca').value = 20;
+        document.getElementById('pct_nucleo_broca').value = 32;
+        document.getElementById('back_taper_val').value = 0.06;
+        document.getElementById('tipo_fajas').value = '4_fajas';
+        document.getElementById('vc_corte').value = 45;
+        document.getElementById('fn_avance').value = 0.08;
+    }
+    ejecutarCalculoBroca();
+});
+
+document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
+    radio.addEventListener('change', function() {
+        const newUnit = this.value;
+        if (newUnit === currentUnit) return;
+
+        const isToInch = (newUnit === 'in');
+        const factor = isToInch ? (1.0 / 25.4) : 25.4;
+
+        ['diametro_broca', 'longitud_canal', 'fn_avance'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value !== '') {
+                const num = parseFloat(input.value);
+                if (!isNaN(num)) input.value = (num * factor).toFixed(isToInch ? 4 : 3);
+            }
+        });
+
+        currentUnit = newUnit;
+        document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
+        document.getElementById('unit-fn').textContent = isToInch ? 'in/rev' : 'mm/rev';
+        document.getElementById('unit-vc').textContent = isToInch ? 'SFPM' : 'm/min';
+        
+        ejecutarCalculoBroca();
+    });
+});
+
+document.getElementById('btn-transfer-broca').addEventListener('click', function() {
+    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
+    const lc = parseFloat(document.getElementById('longitud_canal').value || 53.0);
+    const pctDw = parseFloat(document.getElementById('pct_nucleo_broca').value || 28);
+    const apFlute = (d1 - (d1 * (pctDw / 100.0))) / 2.0;
+
+    const toolData = {
+        diametro_fresa: d1.toFixed(currentUnit === 'in' ? 4 : 3),
+        num_canales: 2,
+        profundidad_canal: apFlute.toFixed(currentUnit === 'in' ? 4 : 3),
+        longitud_corte: lc,
+        unidad: currentUnit
+    };
+
+    localStorage.setItem('toolmaker_active_tool', JSON.stringify(toolData));
+    alert(`Datos de broca (Ø${d1.toFixed(2)}${currentUnit}, 2 Canales) enviados al Módulo 1.`);
+    window.location.href = '/calculadora-muelas';
+});
+
+function ejecutarCalculoBroca() {
+    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
+    const lc = parseFloat(document.getElementById('longitud_canal').value || 53.0);
+    const helice = parseFloat(document.getElementById('helice_broca').value || 30);
+    const angPunta = parseFloat(document.getElementById('angulo_punta').value || 140);
+    const pctDw = parseFloat(document.getElementById('pct_nucleo_broca').value || 28);
+    const backTaper = parseFloat(document.getElementById('back_taper_val').value || 0.08);
+    const tipoFajas = document.getElementById('tipo_fajas').value;
+    const fn = parseFloat(document.getElementById('fn_avance').value || 0.18);
+    const matKey = document.getElementById('preset_material_broca').value;
+    const kc = kcMateriales[matKey] || 1900;
+
+    const dec = (currentUnit === 'in') ? 4 : 3;
+
+    const d1_mm = (currentUnit === 'in') ? d1 * 25.4 : d1;
+    const fn_mm = (currentUnit === 'in') ? fn * 25.4 : fn;
+    const fz = Math.round(0.5 * kc * d1_mm * fn_mm * 0.65);
+    const mc = ((fz * (d1_mm / 2)) / 1000.0).toFixed(2);
+
+    document.getElementById('res-fz').textContent = fz.toLocaleString() + " N";
+    document.getElementById('res-mc').textContent = mc + " N·m";
+
+    const estFz = document.getElementById('est-fz');
+    if (fz > 4000) {
+        estFz.textContent = "⚠️ Empuje Elevado (Verificar rigidez de bancada)";
+        estFz.className = "small fw-bold mt-1 text-danger";
+    } else {
+        estFz.textContent = "✅ Empuje Dentro de Límites Seguros";
+        estFz.className = "small fw-bold mt-1 status-ok";
+    }
+
+    const dwPunta = d1 * (pctDw / 100.0);
+    const backTaperAcum = (lc / 100.0) * (currentUnit === 'in' ? (backTaper * 25.4) : backTaper);
+    const dwRaiz = dwPunta + backTaperAcum;
+
+    const radHalfSigma = (angPunta / 2.0) * Math.PI / 180.0;
+    const alturaPunta = (d1 / 2.0) / Math.tan(radHalfSigma);
+
+    const radHel = helice * Math.PI / 180.0;
+    const lead = (Math.PI * d1) / Math.tan(radHel);
+    const anchoSplit = dwPunta * 0.50;
+
+    document.getElementById('res-tol-vastago').textContent = `Ø${d1.toFixed(dec)} h6 (Runout < 0.003 mm)`;
+    document.getElementById('res-core-punta').textContent = dwPunta.toFixed(dec);
+    document.getElementById('res-core-raiz').textContent = dwRaiz.toFixed(dec);
+    document.getElementById('res-taper-acum').textContent = `+${backTaperAcum.toFixed(dec)} ${currentUnit}`;
+    document.getElementById('res-ancho-split').textContent = `${anchoSplit.toFixed(dec)} ${currentUnit}`;
+    document.getElementById('res-lead-broca').textContent = lead.toFixed(2);
+    document.getElementById('res-altura-punta').textContent = alturaPunta.toFixed(dec);
+
+    if (tipoFajas === '4_fajas') {
+        document.getElementById('res-estabilidad-fajas').textContent = "4 Fajas (Double Margin)";
+        document.getElementById('sub-estabilidad-fajas').textContent = "Máxima Cilíndricidad y Estabilidad Axial en >5xD";
+    } else {
+        document.getElementById('res-estabilidad-fajas').textContent = "2 Fajas (Single Margin)";
+        document.getElementById('sub-estabilidad-fajas').textContent = "Menor Fricción Axial y Calentamiento";
+    }
+
+    dibujarBroca2D();
+}
+
+const formBroca = document.getElementById('form-broca');
+if (formBroca) {
+    formBroca.addEventListener('submit', function(e) {
+        e.preventDefault();
+        ejecutarCalculoBroca();
+    });
+}
+
+['diametro_broca', 'longitud_canal', 'helice_broca', 'angulo_punta', 'pct_nucleo_broca', 'back_taper_val', 'tipo_fajas', 'vc_corte', 'fn_avance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', ejecutarCalculoBroca);
+        el.addEventListener('change', ejecutarCalculoBroca);
+    }
+});
+</script>
+{% endblock %}
