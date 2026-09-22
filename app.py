@@ -8,21 +8,20 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
 def index():
-    return render_template('muelas.html')
+    return render_template('muelas.html', active_module=1)
 
 @app.route('/calculadora-muelas')
 def calculadora_muelas():
-    return render_template('muelas.html')
+    return render_template('muelas.html', active_module=1)
 
 @app.route('/geometria-herramienta')
 def geometria_herramienta():
-    return render_template('geometria.html', active_module=2)
+    return render_template('fresas.html', active_module=2)
 
 @app.route('/geometria-brocas')
 def geometria_brocas():
-    return render_template('brocas.html')
+    return render_template('brocas.html', active_module=3)
 
-# NUEVA RUTA INTEGRADA: MÓDULO 4 (BIBLIOTECA DE ABRASIVOS FEPA)
 @app.route('/catalogo-abrasivos')
 def catalogo_abrasivos():
     return render_template('abrasivos.html', active_module=4)
@@ -33,8 +32,10 @@ def calcular_rectificado():
     try:
         operacion = data.get('operacion', 'fluting')
         unidad = data.get('unidad', 'mm')
+        material_iso = data.get('material_iso', 'K')
+        carburo_co = data.get('carburo_co', '10') # % Cobalto
         aglomerante = data.get('aglomerante', 'hibrido')
-        grano_fepa = data.get('grano_fepa', 'D91')
+        grano_fepa = data.get('grano_fepa', 'D126')
         
         diametro = float(data.get('diametro_rueda', 100))
         ancho = float(data.get('ancho_rueda', 10))
@@ -76,11 +77,17 @@ def calcular_rectificado():
             q_prime = (profundidad_por_pasada * avance) / 60.0 if avance > 0 else 0.0
             q_prime_mm = q_prime
 
-            estado_vs = "Óptimo (Aceite 22-32 m/s)" if 22 <= vs <= 32 else ("Bajo" if vs < 22 else "Alto (Riesgo daño)")
+            # Rango seguro de Vs para rectificado de Carburo
+            if 22 <= vs <= 32:
+                estado_vs = "Óptimo Aceite (22-32 m/s)"
+            elif vs < 22:
+                estado_vs = "Bajo (<22 m/s)"
+            else:
+                estado_vs = "Alto (Riesgo térmico >32 m/s)"
 
         if operacion == 'fluting':
             if q_prime_mm > 5.0 and aglomerante == 'resina':
-                estado_q = "Advertencia: Fluting pesado requiere Aglomerante Híbrido"
+                estado_q = "Advertencia: Requiere Aglomerante Híbrido"
             else:
                 estado_q = "Fluting Normal (<3.0)" if q_prime_mm < 3.0 else "Fluting Pesado Óptimo"
         elif operacion == 'gashing':
@@ -88,12 +95,16 @@ def calcular_rectificado():
         else:
             estado_q = "Relief Ligero (Excelente acabado)" if q_prime_mm <= 1.5 else "Relief Alto"
 
-        factores_grano = {'D126': 0.40, 'D91': 0.25, 'D64': 0.12, 'D46': 0.06}
+        # Factores de rugosidad por tipo de grano FEPA
+        factores_grano = {'D181': 0.80, 'D126': 0.40, 'D91': 0.25, 'D64': 0.12, 'D46': 0.06}
         ra_base = factores_grano.get(grano_fepa, 0.25)
         ra_micras = round(ra_base * (1 + (vf_mm / 1000.0)), 2)
-        estado_ra = "Excelente (Pulido)" if ra_micras < 0.2 else ("Estándar Industrial" if ra_micras <= 0.4 else "Desbaste Rápido")
+        estado_ra = "Excelente (Pulido Espejo)" if ra_micras < 0.2 else ("Estándar Industrial" if ra_micras <= 0.4 else "Desbaste Rápido")
 
-        ue = 40.0
+        # Fuerza de corte específica para rectificado de Carburo según su % de Cobalto
+        kc_map = {'6': 46.0, '8': 43.0, '10': 40.0, '12': 37.0}
+        ue = kc_map.get(str(carburo_co), 40.0)
+        
         ft_especifica = ue * q_prime_mm
         ft_total = ft_especifica * ancho_mm
 
@@ -105,10 +116,10 @@ def calcular_rectificado():
             estado_spindle = "Carga Segura (Husillo OK)"
             nivel_spindle = "success"
         elif carga_spindle_pct <= 95.0:
-            estado_spindle = "Advertencia: Alta Carga de Corte"
+            estado_spindle = "Advertencia: Alta Carga"
             nivel_spindle = "warning"
         else:
-            estado_spindle = "CRÍTICO: RIESGO SOBRECARGA SPINDLE"
+            estado_spindle = "CRÍTICO: SOBRECARGA SPINDLE"
             nivel_spindle = "danger"
 
         if operacion == 'fluting':
@@ -251,7 +262,6 @@ def calcular_broca():
         helice = float(data.get('helice_broca', 30.0))
         ang_punta = float(data.get('angulo_punta', 140.0))
         
-        # Sincronización de variables recibidas desde brocas.html
         pct_dw = float(data.get('pct_nucleo_broca') or data.get('pct_nucleo') or 28.0)
         back_taper = float(data.get('back_taper_val') or data.get('back_taper') or 0.08)
 
