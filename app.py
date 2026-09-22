@@ -16,7 +16,7 @@ def calculadora_muelas():
 
 @app.route('/geometria-herramienta')
 def geometria_herramienta():
-    return render_template('fresas.html', active_module=2)
+    return render_template('geometria.html', active_module=2)
 
 @app.route('/geometria-brocas')
 def geometria_brocas():
