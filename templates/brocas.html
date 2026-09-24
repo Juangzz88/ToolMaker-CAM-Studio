@@ -8,7 +8,6 @@
     border: 1px solid #2a3a5e !important;
 }
 
-/* HUD FLOTANTE COMPACTO Y ALINEADO */
 .viewport-hud-wrapper {
     position: relative;
     width: 100%;
@@ -67,7 +66,6 @@
     margin: 0 2px;
 }
 
-/* ESTILOS PARA TOOLTIPS CAD FLOTANTES Y BADGES ISO */
 .cad-info-btn {
     cursor: pointer;
     font-size: 0.8rem;
@@ -92,20 +90,21 @@
 </style>
 
 <div class="row g-3">
-    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE BROCA DE CARBURO -->
+    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE BROCA -->
     <div class="col-lg-7 col-md-12">
         <div class="card card-custom p-4 h-100">
             
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="text-warning mb-0 fw-bold d-flex align-items-center gap-2">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(255, 234, 0, 0.15)" stroke="#ffea00" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M12 3 L8 8" stroke="#ffea00" stroke-width="2"/>
-                        <path d="M12 3 L16 8" stroke="#ffea00" stroke-width="2"/>
-                        <path d="M8 11 L16 15" stroke="#ffea00" stroke-width="1.5"/>
-                        <path d="M8 16 L16 20" stroke="#ffea00" stroke-width="1.5"/>
+                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+                    <!-- ÍCONO VECTORIAL DE BROCA CON PUNTA CÓNICA A 140° -->
+                    <svg viewBox="0 0 24 24" fill="none" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 8 L12 2 L17 8 Z" fill="rgba(0, 242, 254, 0.2)" stroke="#00f2fe" stroke-width="1.8" stroke-linejoin="round"/>
+                      <line x1="12" y1="2" x2="12" y2="8" stroke="#38bdf8" stroke-width="1.5"/>
+                      <rect x="7" y="8" width="10" height="14" rx="1" fill="rgba(0, 242, 254, 0.08)" stroke="#00f2fe" stroke-width="1.8"/>
+                      <path d="M7 11 L17 15" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M7 16 L17 20" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
-                    <span>Módulo 3: Broca de Carburo Sólido (High Performance)</span>
+                    <span>Broca de Carburo Sólido (High Performance)</span>
                 </h5>
                 
                 <div class="btn-group" role="group">
@@ -120,14 +119,14 @@
             <!-- PRESETS DE MATERIAL Y APLICACIÓN -->
             <div class="row g-2 mb-3">
                 <div class="col-4">
-                    <label class="form-label w-100 text-center fw-bold text-warning">Tolerancia ISO D1</label>
+                    <label class="form-label w-100 text-center fw-bold">Tolerancia ISO D1</label>
                     <select id="clase_tolerancia" class="form-select border-warning fw-bold enter-next">
                         <option value="m7" selected>ISO m7 (DIN 6537 Estándar)</option>
                         <option value="h7">ISO h7 (Precisión / Escariado)</option>
                     </select>
                 </div>
                 <div class="col-4">
-                    <label class="form-label w-100 text-center fw-bold text-warning">Fajas (Margins)</label>
+                    <label class="form-label w-100 text-center fw-bold">Fajas (Margins)</label>
                     <select id="tipo_fajas" class="form-select border-warning fw-bold enter-next">
                         <option value="2_fajas" selected>2 Fajas (Single Margin)</option>
                         <option value="4_fajas">4 Fajas (Double Margin >5xD)</option>
@@ -135,7 +134,7 @@
                 </div>
                 <div class="col-4">
                     <label class="form-label w-100 text-center fw-bold">Material Perforar</label>
-                    <select id="preset_material_broca" class="form-select border-info enter-next">
+                    <select id="preset_material_broca" class="form-select border-info fw-bold enter-next" onchange="aplicarPresetMaterialBroca()">
                         <option value="acero_inox" selected>Aceros / Inox</option>
                         <option value="aluminio">Aluminio / No Ferrosos</option>
                         <option value="alto_rendimiento">Aceros Duros HRC</option>
@@ -159,7 +158,7 @@
 
                     <div class="col-6">
                         <label class="form-label w-100 text-center fw-bold">Relación de Aspecto (L/D)</label>
-                        <select id="relacion_ld" class="form-select enter-next">
+                        <select id="relacion_ld" class="form-select enter-next" onchange="actualizarRelacionAspectoBroca()">
                             <option value="3">3xD (Corta - Máxima Rigidez)</option>
                             <option value="5" selected>5xD (Estándar Industrial)</option>
                             <option value="8">8xD (Profunda - Requiere 4 Fajas)</option>
@@ -180,7 +179,7 @@
                             Ángulo de Hélice (λ)
                             <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                   title="Ángulo de Hélice (Helix Angle - λ)" 
-                                  data-bs-content="Inclinación del canal helicoidal. 30° es el estándar universal; helicoides mayores (38°) facilitan la evacuación de viruta en materiales blandos.">ℹ️</span>
+                                  data-bs-content="Inclinación del canal helicoidal. 30° es el estándar; helicoides mayores (38°) facilitan la evacuación en blandos.">ℹ️</span>
                         </label>
                         <div class="input-group">
                             <input type="number" id="helice_broca" class="form-control enter-next" value="30" step="any" required>
@@ -191,7 +190,7 @@
 
                 <!-- SECCIÓN GEOMETRÍA DE PUNTA & NÚCLEO -->
                 <div class="p-3 mb-3 rounded border border-warning panel-box">
-                    <h6 class="text-warning text-center fw-bold mb-2">Geometría de Punta & Núcleo (Carburo)</h6>
+                    <h6 class="text-info text-center fw-bold mb-2">Geometría de Punta & Núcleo (Carburo)</h6>
                     
                     <div class="row g-2 mb-2">
                         <div class="col-6">
@@ -199,7 +198,7 @@
                                 Ángulo de Punta (σ)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                       title="Ángulo de Punta (Point Angle - σ)" 
-                                      data-bs-content="Ángulo cónico de corte frontal. 118° para materiales blandos y 140° para brocas de carburo en aceros e inoxidable.">ℹ️</span>
+                                      data-bs-content="118° para blandos y 140° para carburo en aceros e inoxidable.">ℹ️</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="angulo_punta" class="form-control enter-next" value="140" step="any" required>
@@ -212,7 +211,7 @@
                                 % Núcleo en Punta (dw)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                       title="Espesor del Núcleo (Web Thickness)" 
-                                      data-bs-content="Porcentaje del diámetro ocupado por el núcleo central (28%–32%). Aumenta la resistencia al pandeo durante el taladrado de alto avance.">ℹ️</span>
+                                      data-bs-content="Porcentaje del diámetro ocupado por el núcleo central (28%–32%). Aumenta la resistencia al pandeo.">ℹ️</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="pct_nucleo_broca" class="form-control enter-next" value="28" step="any" required>
@@ -242,7 +241,7 @@
 
                 <!-- SECCIÓN ADELGAZAMIENTO DE ALMA (SPLIT POINT DIN 1412-C) -->
                 <div class="p-3 mb-3 rounded border border-secondary panel-box">
-                    <h6 class="text-accent text-center fw-bold mb-2">Adelgazamiento de Alma (Split Point DIN 1412-C)</h6>
+                    <h6 class="text-info text-center fw-bold mb-2">Adelgazamiento de Alma (Split Point DIN 1412-C)</h6>
                     
                     <div class="row g-2 mb-2">
                         <div class="col-6">
@@ -250,7 +249,7 @@
                                 Ángulo Cincel (Chisel Angle - ψ)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                       title="Ángulo Filo Transversal (Chisel Angle)" 
-                                      data-bs-content="Ángulo del filo secundario central (125°–135°). Un correcto afilado 'Split Point' elimina la necesidad de punzonar y permite el autocentrado directo.">ℹ️</span>
+                                      data-bs-content="Ángulo del filo secundario central (125°–135°). Un afilado Split Point permite el autocentrado directo.">ℹ️</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="angulo_cincel" class="form-control enter-next" value="130" step="any" required>
@@ -310,9 +309,8 @@
     <!-- COLUMNA DERECHA: RESULTADOS TÉCNICOS Y CANVAS 2D -->
     <div class="col-lg-5 col-md-12">
         <div class="card card-custom p-4 h-100 text-center">
-            <h5 class="text-warning mb-3 text-center fw-bold">Especificación de Broca CNC</h5>
+            <h5 class="text-accent mb-3 text-center fw-bold">Especificación de Broca CNC</h5>
 
-            <!-- TARJETA DEL CANVAS CON HUD FLOTANTE INTEGRADO -->
             <div class="card p-3 mb-3">
                 <label class="d-block mb-2 text-info fw-bold">📐 PERFIL GEOMÉTRICO 2D EN TIEMPO REAL</label>
                 
@@ -321,14 +319,10 @@
                         <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoom(0.15)">＋</button>
                         <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoom(-0.15)">－</button>
                         <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoom()">100%</button>
-                        
                         <div class="hud-divider"></div>
-                        
                         <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotas()">📏 Cotas</button>
                         <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGrid()">🌐 Grid</button>
-                        
                         <div class="hud-divider"></div>
-
                         <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNG()">📸 PNG</button>
                     </div>
 
@@ -338,47 +332,44 @@
                 </div>
             </div>
 
-            <!-- RESULTADOS TÉCNICOS DERECHOS -->
             <div class="p-2 rounded border border-danger mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">EMPUJE AXIAL (Fz) / TORQUE (Mc):</label>
+                <label class="d-block mb-1 fw-bold">EMPUJE AXIAL (Fz) / TORQUE (Mc):</label>
                 <span id="res-fz" class="fs-5 fw-bold text-danger">0 N</span> | <span id="res-mc" class="fs-5 fw-bold text-warning">0.0 N·m</span>
                 <div id="est-fz" class="small fw-bold mt-1 text-light">Carga segura</div>
             </div>
 
             <div class="p-3 rounded border border-warning mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-warning fw-bold">AJUSTE VÁSTAGO & TOLERANCIA:</label>
-                <span id="res-tol-vastago" class="fs-4 fw-bold text-warning">Ø8.000 h6 (Runout &lt; 0.003 mm)</span>
+                <label class="d-block mb-1 fw-bold">AJUSTE VÁSTAGO & TOLERANCIA:</label>
+                <span id="res-tol-vastago" class="fs-4 fw-bold">Ø8.000 h6 (Runout &lt; 0.003 mm)</span>
                 <div class="small text-light mt-1">Apto para Conos Térmicos (Shrink-Fit) e Hidráulicos</div>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">NÚCLEO PUNTA ➔ RAIZ (BACK TAPER):</label>
-                <span id="res-core-punta" class="fs-4 fw-bold status-ok">2.24</span> ➔ <span id="res-core-raiz" class="fs-4 fw-bold text-info">2.28</span> <span class="small text-light unit-label">mm</span>
+                <label class="d-block mb-1 fw-bold">NÚCLEO PUNTA ➔ RAIZ (BACK TAPER):</label>
+                <span id="res-core-punta" class="fs-4 fw-bold ">2.24</span> ➔ <span id="res-core-raiz" class="fs-4 fw-bold ">2.28</span> <span class="small text-light unit-label">mm</span>
                 <div class="small text-light mt-1">Conicidad Trasera Acumulada: <span id="res-taper-acum" class="text-accent fw-bold">+0.042 mm</span></div>
             </div>
 
-            <!-- CÓDIGO CORREGIDO (UNIDAD EN BLANCO/CLARO HOMOGÉNEO) -->
-<div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-    <label class="d-block mb-1 text-light fw-bold">ADELGAZAMIENTO DE ALMA (SPLIT POINT):</label>
-    <span id="res-ancho-split" class="fs-4 fw-bold text-info">1.120</span> <span class="small text-light unit-label">mm</span>
-    <div class="small text-light mt-1">Arista Transversal Reducida al <span id="res-pct-cincel" class="text-info fw-bold">8% D1</span> (Auto-centrante)</div>
-</div>
-
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">PASO DE HÉLICE (HELIX LEAD):</label>
-                <span id="res-lead-broca" class="fs-4 fw-bold text-info">43.53</span> <span class="small text-light unit-label">mm</span>
+                <label class="d-block mb-1 fw-bold">ADELGAZAMIENTO DE ALMA (SPLIT POINT):</label>
+                <span id="res-ancho-split" class="fs-4 fw-bold">1.120</span> <span class="small text-light unit-label">mm</span>
+                <div class="small text-light mt-1">Arista Transversal Reducida al <span id="res-pct-cincel" class="text-info fw-bold">8% D1</span> (Auto-centrante)</div>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">ESTABILIDAD Y FAJAS GUÍA:</label>
-                <span id="res-estabilidad-fajas" class="fs-4 fw-bold status-ok">2 Fajas (Uso General)</span>
+                <label class="d-block mb-1 fw-bold">PASO DE HÉLICE (HELIX LEAD):</label>
+                <span id="res-lead-broca" class="fs-4 fw-bold">43.53</span> <span class="small text-light unit-label">mm</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 fw-bold">ESTABILIDAD Y FAJAS GUÍA:</label>
+                <span id="res-estabilidad-fajas" class="fs-4 fw-bold ">2 Fajas (Uso General)</span>
                 <div id="sub-estabilidad-fajas" class="small text-light mt-1">Baja Fricción Axial</div>
             </div>
 
             <div class="p-3 rounded border border-secondary text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">ALTURA DE PUNTA AXIAL (POINT HEIGHT):</label>
-                <span id="res-altura-punta" class="fs-4 fw-bold status-ok">1.46</span> <span class="small text-light unit-label">mm</span>
-                <div class="small text-light mt-1">Proyección Z desde el centro del cincel al borde</div>
+                <label class="d-block mb-1 fw-bold">ALTURA DE PUNTA AXIAL (POINT HEIGHT):</label>
+                <span id="res-altura-punta" class="fs-4 fw-bold ">1.46</span> <span class="small text-light unit-label">mm</span>
             </div>
         </div>
     </div>
@@ -387,7 +378,6 @@
 
 {% block extra_scripts %}
 <script>
-// VARIABLES GLOBALES DE UNIDAD Y ZOOM / PAN
 let currentUnit = 'mm';
 let hudScale = 1.0;
 let panX = 0;
@@ -405,9 +395,49 @@ const kcMateriales = {
     alto_rendimiento: 2800
 };
 
-// =============================================================================
-// CÁLCULO DE TOLERANCIAS ISO 286 PARA BROCAS (Corte ISO m7 / h7)
-// =============================================================================
+/* PRESET POR MATERIAL CORREGIDO Y EXPUESTO GLOBALMENTE */
+function aplicarPresetMaterialBroca() {
+    const val = document.getElementById('preset_material_broca')?.value || 'acero_inox';
+    const isInch = (currentUnit === 'in');
+
+    if (val === 'acero_inox') {
+        document.getElementById('angulo_punta').value = 140;
+        document.getElementById('helice_broca').value = 30;
+        document.getElementById('pct_nucleo_broca').value = 28;
+        document.getElementById('back_taper_val').value = 0.08;
+        document.getElementById('tipo_fajas').value = '2_fajas';
+        document.getElementById('vc_corte').value = isInch ? 295 : 90;
+        document.getElementById('fn_avance').value = isInch ? 0.0071 : 0.18;
+    } else if (val === 'aluminio') {
+        document.getElementById('angulo_punta').value = 135;
+        document.getElementById('helice_broca').value = 38;
+        document.getElementById('pct_nucleo_broca').value = 22;
+        document.getElementById('back_taper_val').value = 0.10;
+        document.getElementById('tipo_fajas').value = '2_fajas';
+        document.getElementById('vc_corte').value = isInch ? 720 : 220;
+        document.getElementById('fn_avance').value = isInch ? 0.0110 : 0.28;
+    } else if (val === 'alto_rendimiento') {
+        document.getElementById('angulo_punta').value = 145;
+        document.getElementById('helice_broca').value = 20;
+        document.getElementById('pct_nucleo_broca').value = 32;
+        document.getElementById('back_taper_val').value = 0.06;
+        document.getElementById('tipo_fajas').value = '4_fajas';
+        document.getElementById('vc_corte').value = isInch ? 148 : 45;
+        document.getElementById('fn_avance').value = isInch ? 0.0031 : 0.08;
+    }
+
+    ejecutarCalculoBroca();
+}
+
+function actualizarRelacionAspectoBroca() {
+    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
+    const ld = parseFloat(document.getElementById('relacion_ld').value || 5);
+    const lc = (d1 * ld) + (d1 * 1.6);
+    const dec = currentUnit === 'in' ? 4 : 3;
+    document.getElementById('longitud_canal').value = lc.toFixed(dec);
+    ejecutarCalculoBroca();
+}
+
 function calcularToleranciaISOBroca(d, clase = 'm7') {
     if (!d || d <= 0) return { m7: "±0", h7: "±0", h6: "±0" };
 
@@ -416,18 +446,17 @@ function calcularToleranciaISOBroca(d, clase = 'm7') {
 
     let m7Low = 0.004, m7High = 0.016;
     let h7Val = 0.015;
-    let h6Val = 0.009;
 
     if (dMM <= 3) {
-        m7Low = 0.002; m7High = 0.012; h7Val = 0.010; h6Val = 0.006;
+        m7Low = 0.002; m7High = 0.012; h7Val = 0.010;
     } else if (dMM <= 6) {
-        m7Low = 0.004; m7High = 0.016; h7Val = 0.012; h6Val = 0.008;
+        m7Low = 0.004; m7High = 0.016; h7Val = 0.012;
     } else if (dMM <= 10) {
-        m7Low = 0.006; m7High = 0.021; h7Val = 0.015; h6Val = 0.009;
+        m7Low = 0.006; m7High = 0.021; h7Val = 0.015;
     } else if (dMM <= 18) {
-        m7Low = 0.007; m7High = 0.025; h7Val = 0.018; h6Val = 0.011;
+        m7Low = 0.007; m7High = 0.025; h7Val = 0.018;
     } else {
-        m7Low = 0.008; m7High = 0.029; h7Val = 0.021; h6Val = 0.013;
+        m7Low = 0.008; m7High = 0.029; h7Val = 0.021;
     }
 
     if (isInch) {
@@ -454,9 +483,25 @@ function actualizarBadgeISOBroca() {
     }
 }
 
-// CONTROLES DEL HUD FLOTANTE
+// --- FUNCIÓN DE ZOOM DESDE BOTONES HUD ---
 function ajustarZoom(delta) {
-    hudScale = Math.max(0.4, Math.min(6.0, hudScale + delta));
+    const canvas = document.getElementById('canvas-broca');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    // Apuntar al centro del canvas si se usan los botones +/-
+    hacerZoomFocal(canvas.width / 2, canvas.height / 2, delta > 0 ? 1.15 : 1 / 1.15);
+}
+
+// --- ZOOM FOCAL HACIA LA POSICIÓN DEL CURSOR ---
+function hacerZoomFocal(mouseX, mouseY, zoomFactor) {
+    const newScale = Math.max(0.3, Math.min(8.0, hudScale * zoomFactor));
+    const factorEfectivo = newScale / hudScale;
+
+    // Reposicionar el Pan para que la coordenada bajo el cursor se mantenga inmóvil
+    panX = mouseX - factorEfectivo * (mouseX - panX);
+    panY = mouseY - factorEfectivo * (mouseY - panY);
+    hudScale = newScale;
+
     dibujarBroca2D();
 }
 
@@ -498,7 +543,6 @@ function exportarPNG() {
     link.click();
 }
 
-// MOTOR DE DIBUJO VECTORIAL 2D
 function dibujarBroca2D() {
     const canvas = document.getElementById('canvas-broca');
     if (!canvas) return;
@@ -508,7 +552,6 @@ function dibujarBroca2D() {
 
 function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     const canvas = ctx.canvas;
-
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
@@ -521,13 +564,13 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     ctx.save();
     ctx.scale(dpr, dpr);
 
     const w = rect.width;
     const h = rect.height;
 
+    // --- RECTÁNGULO DE FONDO PARA EL GRID Y DIBUJO ---
     if (renderGrid) {
         ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
         ctx.lineWidth = 1;
@@ -544,8 +587,9 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
         }
     }
 
+    // --- APLICACIÓN DE TRANSFORMACIÓN CON ORIGEN LIBRE ---
     ctx.save();
-    ctx.translate(w / 2 - 15 + panX, h / 2 + panY);
+    ctx.translate(panX + w / 2, panY + h / 2);
     ctx.scale(hudScale, hudScale);
 
     const d1 = parseFloat(document.getElementById('diametro_broca')?.value || 8.0);
@@ -568,6 +612,7 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     const xPunta = Math.min(lenFlute * 0.22, (toolH / 2) / Math.tan(radSig));
     const apexX = xJoint + lenFlute;
 
+    // CILINDRO DEL VÁSTAGO (SHANK)
     ctx.strokeStyle = '#38bdf8';
     ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
     ctx.lineWidth = 1.8;
@@ -590,6 +635,7 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     ctx.lineTo(xJoint, y0 + toolH);
     ctx.stroke();
 
+    // CUERPO Y PUNTA CÓNICA DIN 1412-C
     ctx.strokeStyle = '#38bdf8';
     ctx.beginPath();
     ctx.moveTo(xJoint, y0);
@@ -601,6 +647,7 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     ctx.fill();
     ctx.stroke();
 
+    // TAZADO DE CANALES HELICOIDALES
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
     ctx.lineWidth = 1.2;
     const pasoVisual = Math.max(14, 30 - (hel * 0.35));
@@ -611,14 +658,7 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
         ctx.stroke();
     }
 
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(apexX - xPunta, y0 + toolH * 0.25);
-    ctx.lineTo(apexX, 0);
-    ctx.lineTo(apexX - xPunta, y0 + toolH * 0.75);
-    ctx.stroke();
-
+    // LÍNEA DE CENTRO
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
@@ -627,10 +667,10 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // ACOTACIÓN Y TEXTOS TÉCNICOS
     if (renderCotas) {
         ctx.fillStyle = '#94a3b8';
         ctx.font = '10px "JetBrains Mono", monospace';
-
         const dec = (currentUnit === 'in') ? 4 : 3;
 
         ctx.strokeStyle = '#64748b';
@@ -656,94 +696,60 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(`Lc ${lc.toFixed(dec)}`, xJoint + lenFlute / 2, y0 - 12);
-
-        const projLen = 32;   
-        const arcRadius = 24; 
-
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.0;
-
-        ctx.beginPath();
-        ctx.moveTo(apexX, 0);
-        ctx.lineTo(apexX + projLen * Math.cos(radSig), -projLen * Math.sin(radSig));
-        ctx.moveTo(apexX, 0);
-        ctx.lineTo(apexX + projLen * Math.cos(radSig), projLen * Math.sin(radSig));
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(apexX, 0, arcRadius, -radSig, radSig, false);
-        ctx.stroke();
-
-        const xTop = apexX + arcRadius * Math.cos(-radSig);
-        const yTop = arcRadius * Math.sin(-radSig);
-        const xBot = apexX + arcRadius * Math.cos(radSig);
-        const yBot = arcRadius * Math.sin(radSig);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath(); ctx.arc(xTop, yTop, 2, 0, 2 * Math.PI); ctx.fill();
-        ctx.beginPath(); ctx.arc(xBot, yBot, 2, 0, 2 * Math.PI); ctx.fill();
-
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${sig}° SIG`, apexX + arcRadius + 6, 0);
     }
 
     ctx.restore();
     ctx.restore();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar Popovers Bootstrap para Tooltips CAD
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
+// --- CONVERSIÓN BIDIRECCIONAL MM <-> INCH ---
+document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
+    radio.addEventListener('change', function() {
+        const newUnit = this.value;
+        if (newUnit === currentUnit) return;
 
-    const cvs = document.getElementById('canvas-broca');
-    if (cvs) {
-        cvs.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
-            cvs.style.cursor = 'grabbing';
-        });
+        const isToInch = (newUnit === 'in');
+        const factorMM = isToInch ? (1.0 / 25.4) : 25.4;
 
-        window.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            panX = e.clientX - startX;
-            panY = e.clientY - startY;
-            dibujarBroca2D();
-        });
-
-        window.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-                if (cvs) cvs.style.cursor = 'grab';
+        ['diametro_broca', 'longitud_canal'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value !== '' && !isNaN(input.value)) {
+                const num = parseFloat(input.value);
+                input.value = (num * factorMM).toFixed(isToInch ? 4 : 3);
             }
         });
 
-        cvs.addEventListener('wheel', function(e) {
-            e.preventDefault();
+        const inputFn = document.getElementById('fn_avance');
+        if (inputFn && inputFn.value !== '' && !isNaN(inputFn.value)) {
+            const fnNum = parseFloat(inputFn.value);
+            inputFn.value = (fnNum * factorMM).toFixed(isToInch ? 5 : 3);
+        }
 
-            const rect = cvs.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left - (rect.width / 2);
-            const mouseY = e.clientY - rect.top - (rect.height / 2);
+        const inputVc = document.getElementById('vc_corte');
+        if (inputVc && inputVc.value !== '' && !isNaN(inputVc.value)) {
+            const vcNum = parseFloat(inputVc.value);
+            const factorVc = isToInch ? 3.28084 : (1.0 / 3.28084);
+            inputVc.value = Math.round(vcNum * factorVc);
+        }
 
-            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-            const newScale = Math.max(0.4, Math.min(8.0, hudScale * zoomFactor));
+        currentUnit = newUnit;
 
-            panX = mouseX - (mouseX - panX) * (newScale / hudScale);
-            panY = mouseY - (mouseY - panY) * (newScale / hudScale);
+        document.querySelectorAll('.unit-label').forEach(el => {
+            el.textContent = currentUnit;
+        });
+        
+        const unitFn = document.getElementById('unit-fn');
+        if (unitFn) unitFn.textContent = isToInch ? 'in/rev' : 'mm/rev';
 
-            hudScale = newScale;
-            dibujarBroca2D();
-        }, { passive: false });
-    }
+        const unitVc = document.getElementById('unit-vc');
+        if (unitVc) unitVc.textContent = isToInch ? 'SFPM' : 'm/min';
 
-    actualizarBadgeISOBroca();
-    ejecutarCalculoBroca();
+        actualizarBadgeISOBroca();
+        ejecutarCalculoBroca();
+    });
 });
 
+// --- NAVEGACIÓN ENTER-NEXT ---
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const activeElement = document.activeElement;
@@ -764,123 +770,43 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-document.getElementById('clase_tolerancia')?.addEventListener('change', function() {
-    actualizarBadgeISOBroca();
-});
-
-document.getElementById('relacion_ld').addEventListener('change', function() {
-    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
-    const ld = parseFloat(this.value || 5);
-    const lc = (d1 * ld) + (d1 * 1.6);
-    const dec = currentUnit === 'in' ? 4 : 3;
-    document.getElementById('longitud_canal').value = lc.toFixed(dec);
-    ejecutarCalculoBroca();
-});
-
-document.getElementById('preset_material_broca').addEventListener('change', function() {
-    const val = this.value;
-    if (val === 'acero_inox') {
-        document.getElementById('angulo_punta').value = 140;
-        document.getElementById('helice_broca').value = 30;
-        document.getElementById('pct_nucleo_broca').value = 28;
-        document.getElementById('back_taper_val').value = 0.08;
-        document.getElementById('tipo_fajas').value = '2_fajas';
-        document.getElementById('vc_corte').value = 90;
-        document.getElementById('fn_avance').value = 0.18;
-    } else if (val === 'aluminio') {
-        document.getElementById('angulo_punta').value = 135;
-        document.getElementById('helice_broca').value = 38;
-        document.getElementById('pct_nucleo_broca').value = 22;
-        document.getElementById('back_taper_val').value = 0.10;
-        document.getElementById('tipo_fajas').value = '2_fajas';
-        document.getElementById('vc_corte').value = 220;
-        document.getElementById('fn_avance').value = 0.28;
-    } else if (val === 'alto_rendimiento') {
-        document.getElementById('angulo_punta').value = 145;
-        document.getElementById('helice_broca').value = 20;
-        document.getElementById('pct_nucleo_broca').value = 32;
-        document.getElementById('back_taper_val').value = 0.06;
-        document.getElementById('tipo_fajas').value = '4_fajas';
-        document.getElementById('vc_corte').value = 45;
-        document.getElementById('fn_avance').value = 0.08;
-    }
-    ejecutarCalculoBroca();
-});
-
-document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
-    radio.addEventListener('change', function() {
-        const newUnit = this.value;
-        if (newUnit === currentUnit) return;
-
-        const isToInch = (newUnit === 'in');
-        const factor = isToInch ? (1.0 / 25.4) : 25.4;
-
-        ['diametro_broca', 'longitud_canal', 'fn_avance'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input && input.value !== '') {
-                const num = parseFloat(input.value);
-                if (!isNaN(num)) input.value = (num * factor).toFixed(isToInch ? 4 : 3);
-            }
-        });
-
-        currentUnit = newUnit;
-        document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
-        document.getElementById('unit-fn').textContent = isToInch ? 'in/rev' : 'mm/rev';
-        document.getElementById('unit-vc').textContent = isToInch ? 'SFPM' : 'm/min';
-        
-        actualizarBadgeISOBroca();
-        ejecutarCalculoBroca();
-    });
-});
-
-document.getElementById('btn-transfer-broca').addEventListener('click', function() {
-    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
-    const lc = parseFloat(document.getElementById('longitud_canal').value || 53.0);
-    const pctDw = parseFloat(document.getElementById('pct_nucleo_broca').value || 28);
-    const apFlute = (d1 - (d1 * (pctDw / 100.0))) / 2.0;
-
-    const toolData = {
-        diametro_fresa: d1.toFixed(currentUnit === 'in' ? 4 : 3),
-        num_canales: 2,
-        profundidad_canal: apFlute.toFixed(currentUnit === 'in' ? 4 : 3),
-        longitud_corte: lc,
-        unidad: currentUnit
-    };
-
-    localStorage.setItem('toolmaker_active_tool', JSON.stringify(toolData));
-    alert(`Datos de broca (Ø${d1.toFixed(2)}${currentUnit}, 2 Canales) enviados al Módulo 1.`);
-    window.location.href = '/calculadora-muelas';
-});
-
 function ejecutarCalculoBroca() {
-    const d1 = parseFloat(document.getElementById('diametro_broca').value || 8.0);
-    const lc = parseFloat(document.getElementById('longitud_canal').value || 53.0);
-    const helice = parseFloat(document.getElementById('helice_broca').value || 30);
-    const angPunta = parseFloat(document.getElementById('angulo_punta').value || 140);
-    const pctDw = parseFloat(document.getElementById('pct_nucleo_broca').value || 28);
-    const backTaper = parseFloat(document.getElementById('back_taper_val').value || 0.08);
-    const tipoFajas = document.getElementById('tipo_fajas').value;
-    const fn = parseFloat(document.getElementById('fn_avance').value || 0.18);
-    const matKey = document.getElementById('preset_material_broca').value;
-    const kc = kcMateriales[matKey] || 1900;
+    const d1 = parseFloat(document.getElementById('diametro_broca')?.value || 8.0);
+    const lc = parseFloat(document.getElementById('longitud_canal')?.value || 53.0);
+    const helice = parseFloat(document.getElementById('helice_broca')?.value || 30);
+    const angPunta = parseFloat(document.getElementById('angulo_punta')?.value || 140);
+    const pctDw = parseFloat(document.getElementById('pct_nucleo_broca')?.value || 28);
+    const backTaper = parseFloat(document.getElementById('back_taper_val')?.value || 0.08);
+    const fn = parseFloat(document.getElementById('fn_avance')?.value || 0.18);
+    const matKey = document.getElementById('preset_material_broca')?.value || 'acero_inox';
+    const kc11 = kcMateriales[matKey] || 1900;
 
     const dec = (currentUnit === 'in') ? 4 : 3;
-
     const d1_mm = (currentUnit === 'in') ? d1 * 25.4 : d1;
     const fn_mm = (currentUnit === 'in') ? fn * 25.4 : fn;
-    const fz = Math.round(0.5 * kc * d1_mm * fn_mm * 0.65);
-    const mc = ((fz * (d1_mm / 2)) / 1000.0).toFixed(2);
 
-    document.getElementById('res-fz').textContent = fz.toLocaleString() + " N";
-    document.getElementById('res-mc').textContent = mc + " N·m";
+    // KIENZLE CORREGIDO PARA BROCAS HP (Split Point DIN 1412-C)
+    const phi = (angPunta / 2.0) * (Math.PI / 180.0);
+    const h = (fn_mm / 2.0) * Math.sin(phi);
+    const m = 0.25;
+    const kc = kc11 * Math.pow(Math.max(h, 0.01), -m);
+
+    const factorSplitPoint = 0.72;
+    const fz = Math.round(kc * (d1_mm / 2.0) * (fn_mm / 2.0) * Math.sin(phi) * factorSplitPoint * 2.0);
+    const mc = parseFloat(((fz * (d1_mm / 1000.0)) / 4.0).toFixed(2));
+
+    if (document.getElementById('res-fz')) document.getElementById('res-fz').textContent = fz.toLocaleString() + " N";
+    if (document.getElementById('res-mc')) document.getElementById('res-mc').textContent = mc + " N·m";
 
     const estFz = document.getElementById('est-fz');
-    if (fz > 4000) {
-        estFz.textContent = "⚠️ Empuje Elevado (Verificar rigidez de bancada)";
-        estFz.className = "small fw-bold mt-1 text-danger";
-    } else {
-        estFz.textContent = "✅ Empuje Dentro de Límites Seguros";
-        estFz.className = "small fw-bold mt-1 status-ok";
+    if (estFz) {
+        if (fz > 4000) {
+            estFz.textContent = "⚠️ Empuje Elevado (Verificar rigidez de bancada)";
+            estFz.className = "small fw-bold mt-1 text-danger";
+        } else {
+            estFz.textContent = "✅ Empuje Dentro de Límites Seguros (Split Point C)";
+            estFz.className = "small fw-bold mt-1 status-ok";
+        }
     }
 
     const dwPunta = d1 * (pctDw / 100.0);
@@ -894,39 +820,75 @@ function ejecutarCalculoBroca() {
     const lead = (Math.PI * d1) / Math.tan(radHel);
     const anchoSplit = dwPunta * 0.50;
 
-    document.getElementById('res-tol-vastago').textContent = `Ø${d1.toFixed(dec)} h6 (Runout < 0.003 mm)`;
-    document.getElementById('res-core-punta').textContent = dwPunta.toFixed(dec);
-    document.getElementById('res-core-raiz').textContent = dwRaiz.toFixed(dec);
-    document.getElementById('res-taper-acum').textContent = `+${backTaperAcum.toFixed(dec)} ${currentUnit}`;
-    document.getElementById('res-ancho-split').textContent = anchoSplit.toFixed(dec);
-    document.getElementById('res-lead-broca').textContent = lead.toFixed(2);
-    document.getElementById('res-altura-punta').textContent = alturaPunta.toFixed(dec);
-
-    if (tipoFajas === '4_fajas') {
-        document.getElementById('res-estabilidad-fajas').textContent = "4 Fajas (Double Margin)";
-        document.getElementById('sub-estabilidad-fajas').textContent = "Máxima Cilíndricidad y Estabilidad Axial en >5xD";
-    } else {
-        document.getElementById('res-estabilidad-fajas').textContent = "2 Fajas (Single Margin)";
-        document.getElementById('sub-estabilidad-fajas').textContent = "Menor Fricción Axial y Calentamiento";
-    }
+    if (document.getElementById('res-tol-vastago')) document.getElementById('res-tol-vastago').textContent = `Ø${d1.toFixed(dec)} h6 (Runout < 0.003 mm)`;
+    if (document.getElementById('res-core-punta')) document.getElementById('res-core-punta').textContent = dwPunta.toFixed(dec);
+    if (document.getElementById('res-core-raiz')) document.getElementById('res-core-raiz').textContent = dwRaiz.toFixed(dec);
+    if (document.getElementById('res-taper-acum')) document.getElementById('res-taper-acum').textContent = `+${backTaperAcum.toFixed(dec)} ${currentUnit}`;
+    if (document.getElementById('res-ancho-split')) document.getElementById('res-ancho-split').textContent = anchoSplit.toFixed(dec);
+    if (document.getElementById('res-lead-broca')) document.getElementById('res-lead-broca').textContent = lead.toFixed(2);
+    if (document.getElementById('res-altura-punta')) document.getElementById('res-altura-punta').textContent = alturaPunta.toFixed(dec);
 
     dibujarBroca2D();
 }
 
-const formBroca = document.getElementById('form-broca');
-if (formBroca) {
-    formBroca.addEventListener('submit', function(e) {
-        e.preventDefault();
-        ejecutarCalculoBroca();
-    });
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const cvs = document.getElementById('canvas-broca');
+    if (cvs) {
+        // --- EVENTO DE ZOOM FOCAL CON RUEDA DEL RATÓN ---
+        cvs.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const rect = cvs.getBoundingClientRect();
+            // Calcular posición del cursor relativa al origen central del canvas
+            const mouseX = (e.clientX - rect.left) - (rect.width / 2);
+            const mouseY = (e.clientY - rect.top) - (rect.height / 2);
 
-['diametro_broca', 'longitud_canal', 'helice_broca', 'angulo_punta', 'pct_nucleo_broca', 'back_taper_val', 'tipo_fajas', 'vc_corte', 'fn_avance'].forEach(id => {
+            const zoomFactor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+            hacerZoomFocal(mouseX, mouseY, zoomFactor);
+        }, { passive: false });
+
+        // --- RESTABLECER VISTA CON DOBLE CLIC ---
+        cvs.addEventListener('dblclick', function() {
+            resetZoom();
+        });
+
+        // --- ARRASTRE LIBRE (PAN) DE CANVAS ---
+        cvs.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            cvs.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            dibujarBroca2D();
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                if (cvs) cvs.style.cursor = 'grab';
+            }
+        });
+    }
+
+    actualizarBadgeISOBroca();
+    ejecutarCalculoBroca();
+});
+
+['diametro_broca', 'longitud_canal', 'helice_broca', 'angulo_punta', 'pct_nucleo_broca', 'back_taper_val', 'tipo_fajas', 'vc_corte', 'fn_avance', 'clase_tolerancia'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('input', ejecutarCalculoBroca);
         el.addEventListener('change', ejecutarCalculoBroca);
     }
+});
+
+document.getElementById('form-broca')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    ejecutarCalculoBroca();
 });
 </script>
 {% endblock %}

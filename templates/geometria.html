@@ -11,7 +11,6 @@
     border: 1px solid #2a3a5e !important;
 }
 
-/* HUD FLOTANTE COMPACTO Y ALINEADO (SLATE CYAN) */
 .viewport-hud-wrapper {
     position: relative;
     width: 100%;
@@ -70,7 +69,6 @@
     margin: 0 2px;
 }
 
-/* ESTILOS PARA TOOLTIPS CAD FLOTANTES Y BADGES ISO */
 .cad-info-btn {
     cursor: pointer;
     font-size: 0.8rem;
@@ -79,7 +77,7 @@
     transition: color 0.15s;
 }
 .cad-info-btn:hover {
-    color: #eab308;
+    color: #00f2fe;
 }
 
 .iso-badge {
@@ -95,7 +93,7 @@
 </style>
 
 <div class="row g-3">
-    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN GEOMÉTRICA DE FRESA -->
+    <!-- COLUMNA IZQUIERDA -->
     <div class="col-lg-7 col-md-12">
         <div class="card card-custom p-4 h-100">
             
@@ -106,7 +104,7 @@
                         <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#00f2fe" stroke-width="1.5"/>
                         <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#00f2fe" stroke-width="1.5"/>
                         <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#00f2fe" stroke-width="1.5"/>
-                        <path d="M8 2 L12 4 L16 2" stroke="#ffea00" stroke-width="1.5"/>
+                        <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
                     </svg>
                     <span>Generador de Geometría de Herramienta</span>
                 </h5>
@@ -120,11 +118,11 @@
                 </div>
             </div>
 
-            <!-- SELECTOR PRINCIPAL DE ARQUITECTURA DE FRESA -->
+            <!-- SELECTOR PRINCIPAL -->
             <div class="row g-2 mb-3">
                 <div class="col-6">
-                    <label class="form-label w-100 text-center fw-bold text-accent">Tipo de Herramienta</label>
-                    <select id="tipo_herramienta" class="form-select border-accent fw-bold enter-next">
+                    <label class="form-label w-100 text-center fw-bold">Tipo de Herramienta</label>
+                    <select id="tipo_herramienta" class="form-select border-info enter-next">
                         <option value="plana" selected>Fresa Cilíndrica Plana (Square)</option>
                         <option value="esferica">Fresa Esférica (Ball Nose)</option>
                         <option value="toroidal">Fresa Toroidal (Bull Nose)</option>
@@ -155,7 +153,7 @@
                     </div>
 
                     <div class="col-6 d-none" id="box-d2-conico">
-                        <label class="form-label w-100 text-center fw-bold text-warning">Diámetro Raíz/Vástago (D2)</label>
+                        <label class="form-label w-100 text-center fw-bold text-info">Diámetro Raíz/Vástago (D2)</label>
                         <div class="input-group">
                             <input type="number" id="diametro_d2" class="form-control enter-next" value="12" step="any">
                             <span class="input-group-text unit-label">mm</span>
@@ -184,8 +182,8 @@
                     </div>
                 </div>
 
-                <div class="p-3 mb-3 rounded border border-warning panel-box d-none" id="box-conicidad">
-                    <h6 class="text-warning text-center fw-bold mb-2">Ángulo de Conicidad / Flanco</h6>
+                <div class="p-3 mb-3 rounded border border-info panel-box d-none" id="box-conicidad">
+                    <h6 class="text-info text-center fw-bold mb-2">Ángulo de Conicidad / Flanco</h6>
                     <div class="row g-2">
                         <div class="col-12">
                             <label class="form-label w-100 text-center fw-bold">Ángulo por Lado (α)</label>
@@ -197,48 +195,45 @@
                     </div>
                 </div>
 
-                <div class="p-3 mb-3 rounded border border-warning panel-box" id="sec-esquina">
-                    <h6 class="text-warning text-center fw-bold mb-2">Geometría de Esquina & Frente</h6>
+                <div class="p-3 mb-3 rounded border border-info panel-box" id="sec-esquina">
+                    <h6 class="text-info text-center fw-bold mb-2">Geometría de Esquina & Frente</h6>
                     
                     <div class="row g-2 mb-2 align-items-end">
-    <!-- PERFIL ESQUINA -->
-    <div class="col-4" id="box-tipo-esquina">
-        <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
-            <label class="form-label mb-0 fw-bold text-center">Perfil Esquina</label>
-        </div>
-        <select id="tipo_esquina" class="form-select enter-next text-center">
-            <option value="radio" selected>Radio (R)</option>
-            <option value="chaflan">Chaflán (45°)</option>
-        </select>
-    </div>
+                        <div class="col-4" id="box-tipo-esquina">
+                            <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
+                                <label class="form-label mb-0 fw-bold text-center">Perfil Esquina</label>
+                            </div>
+                            <select id="tipo_esquina" class="form-select enter-next text-center">
+                                <option value="radio" selected>Radio (R)</option>
+                                <option value="chaflan">Chaflán (45°)</option>
+                            </select>
+                        </div>
 
-    <!-- RADIO PROTEC (R) / VALOR ESQUINA -->
-    <div class="col-4" id="box-val-esquina">
-        <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
-            <label class="form-label mb-0 fw-bold text-center text-accent" id="lbl-val-esquina">Radio Protec. (R)</label>
-        </div>
-        <div class="input-group">
-            <input type="number" id="val_esquina" class="form-control enter-next text-center" value="0.24" step="any" required>
-            <span class="input-group-text unit-label text-light">mm</span>
-        </div>
-    </div>
+                        <div class="col-4" id="box-val-esquina">
+                            <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
+                                <label class="form-label mb-0 fw-bold text-center " id="lbl-val-esquina">Radio Protec. (R)</label>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" id="val_esquina" class="form-control enter-next text-center" value="0.24" step="any" required>
+                                <span class="input-group-text unit-label text-light">mm</span>
+                            </div>
+                        </div>
 
-    <!-- CONCAVIDAD (DISH) -->
-    <div class="col-4" id="box-dish-angle">
-        <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
-            <label class="form-label mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
-                Concavidad (Dish)
-                <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                      title="Concavidad Frontal (Dish Angle)" 
-                      data-bs-content="Vaciado hacia el centro frontal (1°– 3°) para evitar fricción en inmersión axial.">ℹ️</span>
-            </label>
-        </div>
-        <div class="input-group">
-            <input type="number" id="dish_angle" class="form-control enter-next text-center" value="2.0" step="any" required>
-            <span class="input-group-text text-light">°</span>
-        </div>
-    </div>
-</div>
+                        <div class="col-4" id="box-dish-angle">
+                            <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
+                                <label class="form-label mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                                    Concavidad (Dish)
+                                    <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
+                                          title="Concavidad Frontal (Dish Angle)" 
+                                          data-bs-content="Vaciado hacia el centro frontal (1°– 3°) para evitar fricción en inmersión axial.">ℹ️</span>
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <input type="number" id="dish_angle" class="form-control enter-next text-center" value="2.0" step="any" required>
+                                <span class="input-group-text text-light">°</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="row g-2">
                         <div class="col-12">
@@ -246,7 +241,7 @@
                                 Ángulo Desprendimiento Radial (Rake Angle - γf)
                                 <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                       title="Ángulo de Desprendimiento Radial (γf)" 
-                                      data-bs-content="Ángulo de salida de viruta en corte transversal. Valores mayores (+18°) son ideales para materiales blandos como Aluminio; valores menores (+8°) dan rigidez para aceros HRC 60+.<br><br><svg width='180' height='70' viewBox='0 0 180 70'><circle cx='90' cy='35' r='28' fill='none' stroke='#38bdf8' stroke-width='2'/><path d='M90 35 L118 35 L108 12' fill='none' stroke='#eab308' stroke-width='2'/><text x='115' y='25' fill='#eab308' font-size='10'>γf = 12°</text></svg>">ℹ️</span>
+                                      data-bs-content="Ángulo de salida de viruta en corte transversal.">ℹ️</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="rake_radial" class="form-control enter-next" value="12" step="any" required>
@@ -257,7 +252,7 @@
                 </div>
 
                 <div class="p-3 mb-3 rounded border border-secondary panel-box">
-                    <h6 class="text-accent text-center fw-bold mb-2">Geometría Anti-Vibración (Hélice & Indexado)</h6>
+                    <h6 class="text-info text-center fw-bold mb-2">Geometría Anti-Vibración (Hélice & Indexado)</h6>
                     
                     <div class="row g-2 mb-2">
                         <div class="col-6">
@@ -300,7 +295,7 @@
                             Conicidad Núcleo (Core Taper)
                             <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
                                   title="Conicidad del Núcleo (Core Taper)" 
-                                  data-bs-content="Incremento del diámetro del núcleo desde la punta hacia la raíz (ej. 0.5°/lado) para incrementar la rigidez estructural Iz y evitar la deflexión durante cortes pesados.">ℹ️</span>
+                                  data-bs-content="Incremento del diámetro del núcleo para evitar deflexión.">ℹ️</span>
                         </label>
                         <div class="input-group">
                             <input type="number" id="core_taper_deg" class="form-control enter-next" value="0.5" step="any" required>
@@ -311,18 +306,17 @@
 
                 <div class="d-flex gap-2 mt-2">
                     <button type="submit" class="btn btn-info text-dark fw-bold w-50 py-2" style="background-color: #00f2fe; border: none;">CALCULAR GEOMETRÍA</button>
-                    <button type="button" id="btn-transfer" class="btn btn-warning fw-bold w-50 py-2">USAR EN MÓDULO 1</button>
+                    <button type="button" id="btn-transfer" class="btn btn-outline-info fw-bold w-50 py-2">USAR EN MÓDULO 1</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- COLUMNA DERECHA: RESULTADOS, CANVAS 2D Y GRÁFICO RADAR -->
+    <!-- COLUMNA DERECHA -->
     <div class="col-lg-5 col-md-12">
         <div class="card card-custom p-4 h-100 text-center">
             <h5 class="text-accent mb-3 text-center fw-bold">Especificación de Filo & Rigidez</h5>
 
-            <!-- TARJETA DEL CANVAS CON HUD FLOTANTE -->
             <div class="card p-3 mb-3">
                 <label class="d-block mb-2 text-info fw-bold text-center">PERFIL GEOMÉTRICO 2D EN TIEMPO REAL</label>
                 
@@ -331,14 +325,10 @@
                         <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoom(0.15)">＋</button>
                         <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoom(-0.15)">－</button>
                         <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoom()">100%</button>
-                        
                         <div class="hud-divider"></div>
-                        
                         <button type="button" class="hud-btn active" id="btn-toggle-cotas" onclick="toggleCotas()">📏 Cotas</button>
                         <button type="button" class="hud-btn active" id="btn-toggle-grid" onclick="toggleGrid()">🌐 Grid</button>
-                        
                         <div class="hud-divider"></div>
-
                         <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNG()">📸 PNG</button>
                     </div>
 
@@ -348,46 +338,47 @@
                 </div>
             </div>
 
-            <!-- DIAGRAMA RADAR INTERACTIVO -->
+            <!-- DIAGRAMA RADAR -->
             <div class="p-3 rounded border border-accent mb-3 text-center panel-box">
-                <label class="d-block mb-2 text-accent fw-bold">ANÁLISIS MULTIAXIAL DE RENDIMIENTO</label>
+                <label class="d-block mb-2 text-info fw-bold">ANÁLISIS MULTIAXIAL DE RENDIMIENTO</label>
                 <div style="max-width: 270px; margin: 0 auto; position: relative; height: 210px;">
                     <canvas id="radarRendimientoCanvas"></canvas>
                 </div>
             </div>
 
-            <div class="p-3 rounded border border-warning mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-warning fw-bold">PROTECCIÓN DE PUNTA / PERFIL:</label>
-                <span id="res-esquina" class="fs-4 fw-bold text-warning">Radio R0.240</span>
+            <!-- TARJETA PROTECCIÓN DE PUNTA CORREGIDA (TEXTO SLATE CYAN) -->
+            <div class="p-3 rounded border border-info mb-2 text-center panel-box">
+                <label class="d-block mb-1  fw-bold">PROTECCIÓN DE PUNTA / PERFIL:</label>
+                <span id="res-esquina" class="fs-4 fw-bold ">Plana Radio R0.240</span>
                 <div class="small text-light mt-1" id="box-sub-frente">
-                    <span id="sub-dish-container">Concavidad Frontal (Dish): <span id="res-dish" class="text-info fw-bold">2.0°</span> | </span>Rake Radial: <span id="res-rake" class="text-info fw-bold">12.0°</span>
+                    <span id="sub-dish-container">Concavidad Frontal (Dish): <span id="res-dish" class="text-accent fw-bold">2.0°</span> | </span>Rake Radial: <span id="res-rake" class="text-accent fw-bold">12.0°</span>
                 </div>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">NÚCLEO PUNTA / RAIZ:</label>
-                <span id="res-dc-punta" class="fs-4 fw-bold status-ok">3.72</span> / <span id="res-dc-raiz" class="fs-4 fw-bold text-info">4.24</span> <span class="small text-light unit-label">mm</span>
+                <label class="d-block mb-1 fw-bold">NÚCLEO PUNTA / RAIZ:</label>
+                <span id="res-dc-punta" class="fs-4 fw-bold ">3.72</span> / <span id="res-dc-raiz" class="fs-4 fw-bold ">4.24</span> <span class="small text-light unit-label">mm</span>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">DIVISIÓN / INDEXADO ENTRE FILOS:</label>
-                <span id="res-index" class="fs-4 fw-bold text-info">88.0° / 92.0°</span>
+                <label class="d-block mb-1 fw-bold">DIVISIÓN / INDEXADO ENTRE FILOS:</label>
+                <span id="res-index" class="fs-4 fw-bold ">88.0° / 92.0°</span>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">PASO(S) DE HÉLICE (HELIX LEAD):</label>
+                <label class="d-block mb-1 fw-bold">PASO(S) DE HÉLICE (HELIX LEAD):</label>
                 <span id="res-lead" class="fs-4 fw-bold status-warning">26.92 / 24.13</span> <span class="small text-light unit-label">mm</span>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">ANCHO DE LANDAS (1° Y 2° RELIEF):</label>
-                <span id="res-landa1" class="fs-4 fw-bold status-ok">0.36</span> + <span id="res-landa2" class="fs-4 fw-bold text-info">1.08</span> <span class="small text-light unit-label">mm</span>
+                <label class="d-block mb-1 fw-bold">ANCHO DE LANDAS (1° Y 2° RELIEF):</label>
+                <span id="res-landa1" class="fs-4 fw-bold ">0.36</span> + <span id="res-landa2" class="fs-4 fw-bold ">1.08</span> <span class="small text-light unit-label">mm</span>
                 <div class="small text-light mt-1">Ancho Total de Diente: <span id="res-ancho-total-diente" class="text-accent fw-bold">1.44 mm</span></div>
             </div>
 
             <div class="p-3 rounded border border-secondary text-center panel-box">
-                <label class="d-block mb-1 text-light fw-bold">ÍNDICE DE RIGIDEZ ESTRUCTURAL (Iz):</label>
-                <span id="res-rigidez" class="fs-4 fw-bold status-ok">14.8%</span>
+                <label class="d-block mb-1 fw-bold">ÍNDICE DE RIGIDEZ ESTRUCTURAL (Iz):</label>
+                <span id="res-rigidez" class="fs-4 fw-bold ">14.8%</span>
                 <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Rigidez Estándar</div>
             </div>
         </div>
@@ -408,9 +399,6 @@ let startY = 0;
 let showCotas = true;
 let showGrid = true;
 
-// =============================================================================
-// CÁLCULO DE TOLERANCIAS NORMALIZADAS ISO 286 (DIN ISO h6 / h10 / e8)
-// =============================================================================
 function calcularToleranciaISO(d) {
     if (!d || d <= 0) return { h6: "±0", e8: "±0", h10: "±0" };
 
@@ -419,18 +407,17 @@ function calcularToleranciaISO(d) {
 
     let tolH6 = 0.009;
     let tolH10 = 0.048;
-    let tolE8Low = -0.025, tolE8High = -0.060;
 
     if (dMM <= 3) {
-        tolH6 = 0.006; tolH10 = 0.040; tolE8Low = -0.014; tolE8High = -0.028;
+        tolH6 = 0.006; tolH10 = 0.040;
     } else if (dMM <= 6) {
-        tolH6 = 0.008; tolH10 = 0.048; tolE8Low = -0.020; tolE8High = -0.038;
+        tolH6 = 0.008; tolH10 = 0.048;
     } else if (dMM <= 10) {
-        tolH6 = 0.009; tolH10 = 0.058; tolE8Low = -0.025; tolE8High = -0.047;
+        tolH6 = 0.009; tolH10 = 0.058;
     } else if (dMM <= 18) {
-        tolH6 = 0.011; tolH10 = 0.070; tolE8Low = -0.032; tolE8High = -0.059;
+        tolH6 = 0.011; tolH10 = 0.070;
     } else {
-        tolH6 = 0.013; tolH10 = 0.084; tolE8Low = -0.040; tolE8High = -0.073;
+        tolH6 = 0.013; tolH10 = 0.084;
     }
 
     if (isInch) {
@@ -456,7 +443,6 @@ function actualizarBadgeISO() {
     }
 }
 
-// CONTROLES DEL HUD FLOTANTE 2D
 function ajustarZoom(delta) {
     hudScale = Math.max(0.4, Math.min(8.0, hudScale + delta));
     dibujarPerfil2DFresa();
@@ -464,8 +450,7 @@ function ajustarZoom(delta) {
 
 function resetZoom() {
     hudScale = 1.0;
-    panX = 0;
-    panY = 0;
+    panX = 0; panY = 0;
     dibujarPerfil2DFresa();
 }
 
@@ -509,7 +494,6 @@ function dibujarPerfil2DFresa() {
 
 function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     const canvas = ctx.canvas;
-
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
@@ -529,7 +513,6 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     const w = rect.width;
     const h = rect.height;
 
-    // GRID DINÁMICO
     if (renderGrid) {
         ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
         ctx.lineWidth = 1;
@@ -610,7 +593,6 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
         ctx.lineTo(xJoint, yCut0 + toolH);
     } else if (tipoTool === 'toroidal') {
         const rTor = Math.min(toolH * 0.4, valEsq * scale);
-        
         ctx.moveTo(xJoint, yCut0);
         ctx.lineTo(xTip - rTor, yCut0);
         ctx.arc(xTip - rTor, yCut0 + rTor, rTor, -Math.PI / 2, 0, false);
@@ -662,9 +644,6 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
         ctx.textBaseline = 'middle';
         ctx.fillText(`Ø${d1.toFixed(dec)}`, x0 - 13, 0);
 
-        ctx.strokeStyle = '#64748b';
-        ctx.lineWidth = 1;
-        
         ctx.beginPath();
         ctx.moveTo(xJoint, yCut0 - 8);
         ctx.lineTo(xTip, yCut0 - 8);
@@ -683,9 +662,7 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     ctx.restore();
 }
 
-// INICIALIZACIÓN Y EVENTOS PAN & ZOOM DIRIGIDOS AL CURSOR
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar Popovers Bootstrap para Tooltips CAD
     const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
     popoverTriggerList.map(function (popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl);
@@ -750,7 +727,7 @@ function inicializarGraficoRadar() {
                 data: [75, 70, 80, 85, 75],
                 backgroundColor: 'rgba(0, 242, 254, 0.25)',
                 borderColor: '#00f2fe',
-                pointBackgroundColor: '#ffea00',
+                pointBackgroundColor: '#38bdf8',
                 pointBorderColor: '#ffffff',
                 pointHoverBackgroundColor: '#ffffff',
                 pointHoverBorderColor: '#00f2fe',
@@ -808,14 +785,18 @@ function calcularLongitudCorteAutomatica() {
     const d2 = parseFloat(document.getElementById('diametro_d2').value || 0);
     const ang = parseFloat(document.getElementById('angulo_conicidad').value || 0);
 
+    const inputLc = document.getElementById('longitud_corte');
+
     if (d2 > d1 && ang > 0) {
         const radAng = ang * Math.PI / 180.0;
         const lcCalculado = (d2 - d1) / (2.0 * Math.sin(radAng));
         const dec = (currentUnit === 'in') ? 4 : 3;
-        document.getElementById('longitud_corte').value = lcCalculado.toFixed(dec);
+        if (inputLc) inputLc.value = lcCalculado.toFixed(dec);
+    } else {
+        // Protección contra D2 <= D1
+        if (inputLc) inputLc.value = (d1 * 2.5).toFixed(currentUnit === 'in' ? 4 : 3);
     }
 }
-
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const activeElement = document.activeElement;
@@ -886,7 +867,7 @@ document.getElementById('tipo_herramienta').addEventListener('change', function(
         lblLc.textContent = "Long. Corte Calculada (Lc)";
         inputLc.disabled = true;
         inputLc.style.backgroundColor = "#1a264a";
-        inputLc.style.color = "#ffea00";
+        inputLc.style.color = "#38bdf8";
         
         boxTipoEsq.classList.remove('d-none');
         boxDish.classList.remove('d-none');
