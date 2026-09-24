@@ -324,7 +324,7 @@
       <ul class="sidebar-nav">
         <!-- MÓDULO 1 -->
         <li class="sidebar-item">
-          <a href="/calculadora-muelas" class="sidebar-link {% if active_module == 1 %}active{% endif %}" title="Módulo 1: Operaciones & Muelas">
+          <a href="{{ url_for('calculadora_muelas') }}" class="sidebar-link {% if active_module == 1 %}active{% endif %}" title="Módulo 1: Operaciones & Muelas">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
               <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
@@ -336,7 +336,7 @@
 
         <!-- MÓDULO 2 -->
         <li class="sidebar-item">
-          <a href="/geometria-herramienta" class="sidebar-link {% if active_module == 2 %}active{% endif %}" title="Módulo 2: Geometría de Fresas">
+          <a href="{{ url_for('geometria_herramienta') }}" class="sidebar-link {% if active_module == 2 %}active{% endif %}" title="Módulo 2: Geometría de Fresas">
             <svg viewBox="0 0 24 24" fill="none">
               <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8"/>
               <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#38bdf8" stroke-width="1.5"/>
@@ -350,7 +350,7 @@
 
         <!-- MÓDULO 3 -->
         <li class="sidebar-item">
-          <a href="/geometria-brocas" class="sidebar-link {% if active_module == 3 %}active{% endif %}" title="Módulo 3: Brocas de Carburo">
+          <a href="{{ url_for('geometria_brocas') }}" class="sidebar-link {% if active_module == 3 %}active{% endif %}" title="Módulo 3: Brocas de Carburo">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
               <path d="M12 3 L8 8" stroke="#38bdf8" stroke-width="1.8"/>
@@ -364,7 +364,7 @@
 
         <!-- MÓDULO 4 -->
         <li class="sidebar-item">
-          <a href="/catalogo-abrasivos" class="sidebar-link {% if active_module == 4 %}active{% endif %}" title="Módulo 4: Abrasivos FEPA">
+          <a href="{{ url_for('catalogo_abrasivos') }}" class="sidebar-link {% if active_module == 4 %}active{% endif %}" title="Módulo 4: Abrasivos FEPA">
             <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
               <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="rgba(56, 189, 248, 0.15)"/>
               <line x1="12" y1="2" x2="12" y2="22"/>
@@ -375,7 +375,7 @@
 
         <!-- MÓDULO 5 -->
         <li class="sidebar-item">
-          <a href="/recubrimientos" class="sidebar-link {% if active_module == 5 %}active{% endif %}" title="Módulo 5: Recubrimientos PVD">
+          <a href="{{ url_for('recubrimientos') }}" class="sidebar-link {% if active_module == 5 %}active{% endif %}" title="Módulo 5: Recubrimientos PVD">
             <svg viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
@@ -385,7 +385,7 @@
 
         <!-- MÓDULO 6: MULTI-IA -->
         <li class="sidebar-item">
-          <a href="/multi-ia" class="sidebar-link {% if active_module == 6 %}active{% endif %}" title="Módulo Multi-IA Orchestrator">
+          <a href="{{ url_for('vista_multi_ia') }}" class="sidebar-link {% if active_module == 6 %}active{% endif %}" title="Módulo Multi-IA Orchestrator">
             <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 6v6l4 2"/>
