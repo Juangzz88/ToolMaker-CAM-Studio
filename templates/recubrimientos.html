@@ -4,7 +4,6 @@
 
 {% block extra_head %}
 <style>
-  /* ESTILO EXACTO DE POPOVERS (SLATE CYAN / INDUSTRIAL DARK) */
   .popover {
     background-color: #22262c !important;
     border: 1px solid #334155 !important;
@@ -32,7 +31,6 @@
     padding: 12px 14px !important;
   }
 
-  /* EMPAREJAMIENTO DE FLECHAS POPUP */
   .bs-popover-auto[data-popper-placement^=top] > .popover-arrow::after,
   .bs-popover-top > .popover-arrow::after {
     border-top-color: #22262c !important;
@@ -50,7 +48,6 @@
     border-right-color: #22262c !important;
   }
 
-  /* BOTÓN DISPARADOR DE AYUDA (CAD INFO BTN) */
   .cad-info-btn {
     cursor: pointer !important;
     font-size: 0.85rem !important;
@@ -67,234 +64,234 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-2" style="background-color: #0b1120; color: #f8fafc; min-height: 90vh;">
-  
-  <!-- Encabezado de Módulo -->
-  <div class="module-header-container pb-3 mb-4 border-bottom border-secondary border-opacity-25">
-    <div class="d-flex align-items-center gap-3">
-      <div class="p-2 rounded-3" style="background-color: #0f172a; border: 1px solid #00f2fe;">
-        <svg style="width:28px; height:28px;" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(0, 242, 254, 0.15)"/>
-        </svg>
+<!-- ENCABEZADO HOMOLOGADO MÓDULO 5 -->
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+            <svg style="width:24px; height:24px;" viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(0, 242, 254, 0.15)"/>
+            </svg>
+            <span>Análisis Tribológico de Recubrimientos PVD / CVD</span>
+        </h5>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
+            🖨️ Exportar Hoja CNC
+        </button>
+
+        <span class="badge bg-dark border border-info border-opacity-25 px-3 py-2 font-monospace" style="color: #00f2fe;">
+            MODELO TAYLOR - TÉRMICO
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+  <!-- FORMULARIO DE ENTRADA -->
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary border-opacity-25 shadow-sm h-100" style="background-color: #0f172a !important;">
+      <div class="card-header border-bottom border-secondary border-opacity-25 py-3" style="background-color: #1e293b;">
+        <h6 class="mb-0 text-uppercase font-monospace fw-bold" style="color: #38bdf8; font-size: 0.8rem;">
+          <i class="bi bi-sliders me-2"></i>Parámetros Tribológicos
+        </h6>
       </div>
-      <div>
-        <h4 class="mb-0 fw-normal text-white">Análisis Tribológico de Recubrimientos PVD / CVD</h4>
-        <small class="text-muted font-monospace" style="font-size: 0.75rem;">Estimación de temperatura de interfaz, degradación térmica y modelo de desgaste en 2 fases</small>
+      <div class="card-body p-3 font-monospace">
+        <form id="formRecubrimientos" class="row g-3">
+          
+          <!-- Recubrimiento PVD/CVD -->
+          <div class="col-12">
+            <label class="form-label small text-muted d-flex align-items-center">
+              Capa de Recubrimiento
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Capa de Recubrimiento (PVD/CVD)" 
+                    data-bs-content="Composición de la película delgada. Dicta la dureza Nanohardness (GPa), el coeficiente de fricción seco (µ) y la temperatura máxima de estabilidad antes de la descomposición térmica por oxidación.">ℹ️</span>
+            </label>
+            <select class="form-select bg-dark text-light border-secondary text-center" 
+                    id="recubrimiento" 
+                    onchange="ejecutarAnalisisRecubrimiento(); capturarYGuardarContextoLocal(); triggerAutoAI();">
+              <option value="ALTIN" selected>AlTiN (PVD) - Dureza 38 GPa | Tmáx 900°C</option>
+              <option value="TIALN">TiAlN (PVD) - Dureza 33 GPa | Tmáx 800°C</option>
+              <option value="ALCRN">AlCrN (PVD) - Dureza 32 GPa | Tmáx 1100°C</option>
+              <option value="DLC">DLC (PVD) - Dureza 60 GPa | Tmáx 350°C (No Ferrosos)</option>
+            </select>
+          </div>
+
+          <!-- Espesor de Capa -->
+          <div class="col-6">
+            <label class="form-label small text-muted d-flex align-items-center justify-content-center">
+              Espesor e (µm)
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Espesor de Capa (Micras - µm)" 
+                    data-bs-content="Espesor de la película depositada. Capas delgadas (&lt;2.5 µm) se usan para micro-mecanizado y filos agudos; capas gruesas (3.0–5.0 µm) mejoran la barrera térmica en desbaste pesado.">ℹ️</span>
+            </label>
+            <input type="number" step="0.5" class="form-control bg-dark text-light border-secondary text-center" id="e_capa_um" value="3.0" oninput="ejecutarAnalisisRecubrimiento()">
+          </div>
+
+          <!-- Material ISO -->
+          <div class="col-6">
+            <label class="form-label small text-muted d-flex align-items-center justify-content-center">
+              Material ISO
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Clasificación de Material ISO 513" 
+                    data-bs-content="P: Aceros | M: Inoxidables | K: Fundiciones | N: Aluminio/No ferrosos | S: Superaleaciones (Inconel/Titanio) | H: Aceros Templados (&gt;50 HRC). Ajusta los picos de fricción y disipación térmica.">ℹ️</span>
+            </label>
+            <select class="form-select bg-dark text-light border-secondary text-center" id="material_iso" onchange="ejecutarAnalisisRecubrimiento()">
+              <option value="P" selected>P - Aceros</option>
+              <option value="M">M - Inoxidable</option>
+              <option value="K">K - Fundición</option>
+              <option value="N">N - Aluminio / No Ferrosos</option>
+              <option value="S">S - Superaleaciones / Titanio</option>
+              <option value="H">H - Aceros Templados (&gt; 50 HRC)</option>
+            </select>
+          </div>
+
+          <hr class="my-3 border-secondary border-opacity-25">
+
+          <!-- Parámetros Cinemáticos -->
+          <div class="col-6">
+            <label class="form-label small text-muted d-flex align-items-center justify-content-center">
+              Vc (m/min)
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Velocidad de Corte (Vc)" 
+                    data-bs-content="Velocidad tangencial del filo de corte. Es el factor principal que eleva la temperatura en la zona de cizallamiento viruta-herramienta.">ℹ️</span>
+            </label>
+            <input type="number" step="5" class="form-control bg-dark text-light border-secondary text-center" id="vc_m_min" value="180" oninput="ejecutarAnalisisRecubrimiento()">
+          </div>
+
+          <div class="col-6">
+            <label class="form-label small text-muted d-flex align-items-center justify-content-center">
+              fz (mm/z)
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Avance por Diente (fz)" 
+                    data-bs-content="Espesor máximo de la viruta no deformada. Dicta la carga lineal de corte e influye en la tasa abrasiva mecánica y en las cargas mecánicas sobre la arista.">ℹ️</span>
+            </label>
+            <input type="number" step="0.005" class="form-control bg-dark text-light border-secondary text-center" id="fz_mm_diente" value="0.050" oninput="ejecutarAnalisisRecubrimiento()">
+          </div>
+
+          <div class="col-12 mt-4">
+            <button type="button" onclick="ejecutarAnalisisRecubrimiento()" class="btn w-100 font-monospace fw-bold py-2" style="background-color: #38bdf8; color: #0b1120;">
+              <i class="bi bi-cpu-fill me-1"></i>RECALCULAR TRIBOLOGÍA
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-    <span class="badge bg-dark border border-info border-opacity-25 px-3 py-2 font-monospace" style="color: #00f2fe;">
-      MODELO TAYLOR - TÉRMICO
-    </span>
   </div>
 
-  <div class="row g-4">
-    <!-- FORMULARIO DE ENTRADA -->
-    <div class="col-lg-4">
-      <div class="card bg-dark border-secondary border-opacity-25 shadow-sm h-100" style="background-color: #0f172a !important;">
-        <div class="card-header border-bottom border-secondary border-opacity-25 py-3" style="background-color: #1e293b;">
-          <h6 class="mb-0 text-uppercase font-monospace fw-bold" style="color: #38bdf8; font-size: 0.8rem;">
-            <i class="bi bi-sliders me-2"></i>Parámetros Tribológicos
-          </h6>
-        </div>
-        <div class="card-body p-3 font-monospace">
-          <form id="formRecubrimientos" class="row g-3">
-            
-            <!-- Recubrimiento PVD/CVD -->
-            <div class="col-12">
-              <label class="form-label small text-muted d-flex align-items-center">
-                Capa de Recubrimiento
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Capa de Recubrimiento (PVD/CVD)" 
-                      data-bs-content="Composición de la película delgada. Dicta la dureza Nanohardness (GPa), el coeficiente de fricción seco (µ) y la temperatura máxima de estabilidad antes de la descomposición térmica por oxidación.">ℹ️</span>
-              </label>
-              <!-- SELECTOR CON DISPARO DE EVENTOS PARALELO -->
-<select class="form-select bg-dark text-light border-secondary text-center" 
-        id="recubrimiento" 
-        onchange="ejecutarAnalisisRecubrimiento(); capturarYGuardarContextoLocal(); triggerAutoAI();">
-  <option value="ALTIN" selected>AlTiN (PVD) - Dureza 38 GPa | Tmáx 900°C</option>
-  <option value="TIALN">TiAlN (PVD) - Dureza 33 GPa | Tmáx 800°C</option>
-  <option value="ALCRN">AlCrN (PVD) - Dureza 32 GPa | Tmáx 1100°C</option>
-  <option value="DLC">DLC (PVD) - Dureza 60 GPa | Tmáx 350°C (No Ferrosos)</option>
-</select>
-            </div>
-
-            <!-- Espesor de Capa -->
-            <div class="col-6">
-              <label class="form-label small text-muted d-flex align-items-center justify-content-center">
-                Espesor e (µm)
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Espesor de Capa (Micras - µm)" 
-                      data-bs-content="Espesor de la película depositada. Capas delgadas (&lt;2.5 µm) se usan para micro-mecanizado y filos agudos; capas gruesas (3.0–5.0 µm) mejoran la barrera térmica en desbaste pesado.">ℹ️</span>
-              </label>
-              <input type="number" step="0.5" class="form-control bg-dark text-light border-secondary text-center" id="e_capa_um" value="3.0" oninput="ejecutarAnalisisRecubrimiento()">
-            </div>
-
-            <!-- Material ISO -->
-            <div class="col-6">
-              <label class="form-label small text-muted d-flex align-items-center justify-content-center">
-                Material ISO
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Clasificación de Material ISO 513" 
-                      data-bs-content="P: Aceros | M: Inoxidables | K: Fundiciones | N: Aluminio/No ferrosos | S: Superaleaciones (Inconel/Titanio) | H: Aceros Templados (&gt;50 HRC). Ajusta los picos de fricción y disipación térmica.">ℹ️</span>
-              </label>
-              <select class="form-select bg-dark text-light border-secondary text-center" id="material_iso" onchange="ejecutarAnalisisRecubrimiento()">
-                <option value="P" selected>P - Aceros</option>
-                <option value="M">M - Inoxidable</option>
-                <option value="K">K - Fundición</option>
-                <option value="N">N - Aluminio / No Ferrosos</option>
-                <option value="S">S - Superaleaciones / Titanio</option>
-                <option value="H">H - Aceros Templados (&gt; 50 HRC)</option>
-              </select>
-            </div>
-
-            <hr class="my-3 border-secondary border-opacity-25">
-
-            <!-- Parámetros Cinemáticos -->
-            <div class="col-6">
-              <label class="form-label small text-muted d-flex align-items-center justify-content-center">
-                Vc (m/min)
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Velocidad de Corte (Vc)" 
-                      data-bs-content="Velocidad tangencial del filo de corte. Es el factor principal que eleva la temperatura en la zona de cizallamiento viruta-herramienta.">ℹ️</span>
-              </label>
-              <input type="number" step="5" class="form-control bg-dark text-light border-secondary text-center" id="vc_m_min" value="180" oninput="ejecutarAnalisisRecubrimiento()">
-            </div>
-
-            <div class="col-6">
-              <label class="form-label small text-muted d-flex align-items-center justify-content-center">
-                fz (mm/z)
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Avance por Diente (fz)" 
-                      data-bs-content="Espesor máximo de la viruta no deformada. Dicta la carga lineal de corte e influye en la tasa abrasiva mecánica y en las cargas mecánicas sobre la arista.">ℹ️</span>
-              </label>
-              <input type="number" step="0.005" class="form-control bg-dark text-light border-secondary text-center" id="fz_mm_diente" value="0.050" oninput="ejecutarAnalisisRecubrimiento()">
-            </div>
-
-            <div class="col-12 mt-4">
-              <button type="button" onclick="ejecutarAnalisisRecubrimiento()" class="btn w-100 font-monospace fw-bold py-2" style="background-color: #38bdf8; color: #0b1120;">
-                <i class="bi bi-cpu-fill me-1"></i>RECALCULAR TRIBOLOGÍA
-              </button>
-            </div>
-          </form>
+  <!-- RESULTADOS Y RECOMENDACIONES -->
+  <div class="col-lg-8">
+    <div class="row g-3 justify-content-center text-center">
+      
+      <!-- KPI 1: TEMPERATURA DE INTERFAZ -->
+      <div class="col-md-6">
+        <div class="card bg-dark border-secondary border-opacity-25 p-3 h-100 justify-content-center text-center" style="background-color: #0f172a !important;">
+          <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
+            Temperatura Interfaz
+            <span class="cad-info-btn" 
+                  data-bs-toggle="popover" 
+                  data-bs-trigger="hover focus" 
+                  data-bs-html="true" 
+                  title="Temperatura en Interfaz Viruta-Herramienta" 
+                  data-bs-content="Pico de temperatura alcanzado en el punto de contacto según modelo térmico de Jaeger/Shaw. Si supera la Tmáx de la capa, se activa la degradación acelerada.">ℹ️</span>
+          </div>
+          <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-t-corte">0.0 °C</div>
+          <div class="small fw-semibold text-info" id="res-t-status" style="color: #64748b;">
+            Límite Térmico Capa: <span id="res-t-max" class="text-light font-monospace">900 °C</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- RESULTADOS Y RECOMENDACIONES IA -->
-    <div class="col-lg-8">
-      <div class="row g-3 justify-content-center text-center">
-        
-        <!-- KPI 1: TEMPERATURA DE INTERFAZ -->
-        <div class="col-md-6">
-          <div class="card bg-dark border-secondary border-opacity-25 p-3 h-100 justify-content-center text-center" style="background-color: #0f172a !important;">
-            <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
-              Temperatura Interfaz
-              <span class="cad-info-btn" 
-                    data-bs-toggle="popover" 
-                    data-bs-trigger="hover focus" 
-                    data-bs-html="true" 
-                    title="Temperatura en Interfaz Viruta-Herramienta" 
-                    data-bs-content="Pico de temperatura alcanzado en el punto de contacto según modelo térmico de Jaeger/Shaw. Si supera la Tmáx de la capa, se activa la degradación acelerada.">ℹ️</span>
-            </div>
-            <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-t-corte">0.0 °C</div>
-            <div class="small fw-semibold text-info" id="res-t-status" style="color: #64748b;">
-              Límite Térmico Capa: <span id="res-t-max" class="text-light font-monospace">900 °C</span>
-            </div>
+      <!-- KPI 2: TASA DE DESGASTE LINEAL -->
+      <div class="col-md-6">
+        <div class="card bg-dark border-secondary border-opacity-25 p-3 h-100 justify-content-center text-center" style="background-color: #0f172a !important;">
+          <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
+            Tasa Desgaste PVD
+            <span class="cad-info-btn" 
+                  data-bs-toggle="popover" 
+                  data-bs-trigger="hover focus" 
+                  data-bs-html="true" 
+                  title="Tasa de Desgaste de la Capa (µm/min)" 
+                  data-bs-content="Velocidad lineal a la que se erosiona el espesor de la película PVD en la Fase 1. Depende de la dureza Nanohardness y del coeficiente de fricción del material.">ℹ️</span>
+          </div>
+          <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-tasa-desgaste">0.000 µm/min</div>
+          <div class="small fw-semibold text-info" id="res-vida-capa">
+            Fase 1 (Capa Intacta): <span class="text-light font-monospace">0.0 min</span>
           </div>
         </div>
-
-        <!-- KPI 2: TASA DE DESGASTE LINEAL -->
-        <div class="col-md-6">
-          <div class="card bg-dark border-secondary border-opacity-25 p-3 h-100 justify-content-center text-center" style="background-color: #0f172a !important;">
-            <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
-              Tasa Desgaste PVD
-              <span class="cad-info-btn" 
-                    data-bs-toggle="popover" 
-                    data-bs-trigger="hover focus" 
-                    data-bs-html="true" 
-                    title="Tasa de Desgaste de la Capa (µm/min)" 
-                    data-bs-content="Velocidad lineal a la que se erosiona el espesor de la película PVD en la Fase 1. Depende de la dureza Nanohardness y del coeficiente de fricción del material.">ℹ️</span>
-            </div>
-            <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-tasa-desgaste">0.000 µm/min</div>
-            <div class="small fw-semibold text-info" id="res-vida-capa">
-              Fase 1 (Capa Intacta): <span class="text-light font-monospace">0.0 min</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI 3: VIDA ÚTIL ACUMULADA VB CRÍTICO -->
-        <div class="col-12">
-          <div class="card bg-dark border-info border-opacity-25 p-3 text-center justify-content-center" style="background-color: #0f172a !important;">
-            <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
-              Vida Útil Total Estimada (VB = 0.10 mm)
-              <span class="cad-info-btn" 
-                    data-bs-toggle="popover" 
-                    data-bs-trigger="hover focus" 
-                    data-bs-html="true" 
-                    title="Vida Útil Acumulada Bimodal (Taylor)" 
-                    data-bs-content="Tiempo total hasta alcanzar el desgaste de flanco crítico VB = 0.10 mm. Combina la duración de la capa intacta (Fase 1) y el desgaste progresivo del carburo expuesto (Fase 2).">ℹ️</span>
-            </div>
-            <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-vida-total" style=>
-              0.0 min
-            </div>
-            <div class="small fw-semibold text-info">
-              Modelo Bimodal: Fase 1 (PVD) + Fase 2 (Sustrato Carburo Expuesto)
-            </div>
-          </div>
-        </div>
-
-        <!-- PANEL DE RECOMENDACIONES IA -->
-        <div class="col-12">
-          <div class="card bg-dark border-secondary border-opacity-25 text-start p-3" style="background-color: #0f172a !important;">
-            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-3">
-              <span class="fw-bold font-monospace d-flex align-items-center gap-2" style="color: #00f2fe; font-size: 0.85rem;">
-                <i class="bi bi-robot"></i>RECOMENDACIONES TÉRMICAS &amp; TRIBOLÓGICAS (SISTEMA IA)
-                <span class="cad-info-btn" 
-                      data-bs-toggle="popover" 
-                      data-bs-trigger="hover focus" 
-                      data-bs-html="true" 
-                      title="Consenso Multi-IA en Tiempo Real" 
-                      data-bs-content="Evaluación automática que equilibra la estabilidad del recubrimiento, la evacuación de viruta y el Metal Removal Rate (MRR) proponiendo ajustes de Vc y fz.">ℹ️</span>
-              </span>
-              <span class="badge bg-dark border border-secondary text-info font-monospace" id="badgeEstadoIA" style="font-size: 0.65rem;">
-                ANALIZANDO
-              </span>
-            </div>
-
-            <div class="p-3 rounded border border-secondary border-opacity-25 font-monospace" style="background-color: #0b1120;">
-              <div class="small text-muted mb-2 fw-bold text-uppercase" style="font-size: 0.7rem; color: #38bdf8 !important;">
-                Diagnóstico de Degradación Térmica:
-              </div>
-              <div id="iaDiagnosticoTermico" class="small text-light mb-3" style="font-size: 0.8rem; line-height: 1.5;">
-                Cargando análisis térmico del proceso...
-              </div>
-
-              <div class="small text-muted mb-2 fw-bold text-uppercase" style="font-size: 0.7rem; color: #38bdf8 !important;">
-                Acciones de Optimización Sugeridas:
-              </div>
-              <ul id="iaAccionesSugeridas" class="small text-light ps-3 mb-0" style="font-size: 0.775rem; line-height: 1.6;">
-                <li>Ejecutando evaluación de la ventana de corte...</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
       </div>
+
+      <!-- KPI 3: VIDA ÚTIL ACUMULADA -->
+      <div class="col-12">
+        <div class="card bg-dark border-info border-opacity-25 p-3 text-center justify-content-center" style="background-color: #0f172a !important;">
+          <div class="text-uppercase fw-bold text-muted small mb-1 d-flex align-items-center justify-content-center" style="letter-spacing: 0.05em;">
+            Vida Útil Total Estimada (VB = 0.10 mm)
+            <span class="cad-info-btn" 
+                  data-bs-toggle="popover" 
+                  data-bs-trigger="hover focus" 
+                  data-bs-html="true" 
+                  title="Vida Útil Acumulada Bimodal (Taylor)" 
+                  data-bs-content="Tiempo total hasta alcanzar el desgaste de flanco crítico VB = 0.10 mm. Combina la duración de la capa intacta (Fase 1) y el desgaste progresivo del carburo expuesto (Fase 2).">ℹ️</span>
+          </div>
+          <div class="fs-3 fw-bold text-white font-monospace my-1" id="res-vida-total">
+            0.0 min
+          </div>
+          <div class="small fw-semibold text-info">
+            Modelo Bimodal: Fase 1 (PVD) + Fase 2 (Sustrato Carburo Expuesto)
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL DE RECOMENDACIONES -->
+      <div class="col-12">
+        <div class="card bg-dark border-secondary border-opacity-25 text-start p-3" style="background-color: #0f172a !important;">
+          <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+            <span class="fw-bold font-monospace d-flex align-items-center gap-2" style="color: #00f2fe; font-size: 0.85rem;">
+              <i class="bi bi-robot"></i>RECOMENDACIONES TÉRMICAS &amp; TRIBOLÓGICAS (SISTEMA LOCAL)
+              <span class="cad-info-btn" 
+                    data-bs-toggle="popover" 
+                    data-bs-trigger="hover focus" 
+                    data-bs-html="true" 
+                    title="Consenso Físico Local" 
+                    data-bs-content="Evaluación automática que equilibra la estabilidad del recubrimiento, la evacuación de viruta y el Metal Removal Rate (MRR) proponiendo ajustes de Vc y fz.">ℹ️</span>
+            </span>
+            <span class="badge bg-dark border border-secondary text-info font-monospace" id="badgeEstadoIA" style="font-size: 0.65rem;">
+              ANALIZANDO
+            </span>
+          </div>
+
+          <div class="p-3 rounded border border-secondary border-opacity-25 font-monospace" style="background-color: #0b1120;">
+            <div class="small text-muted mb-2 fw-bold text-uppercase" style="font-size: 0.7rem; color: #38bdf8 !important;">
+              Diagnóstico de Degradación Térmica:
+            </div>
+            <div id="iaDiagnosticoTermico" class="small text-light mb-3" style="font-size: 0.8rem; line-height: 1.5;">
+              Cargando análisis térmico del proceso...
+            </div>
+
+            <div class="small text-muted mb-2 fw-bold text-uppercase" style="font-size: 0.7rem; color: #38bdf8 !important;">
+              Acciones de Optimización Sugeridas:
+            </div>
+            <ul id="iaAccionesSugeridas" class="small text-light ps-3 mb-0" style="font-size: 0.775rem; line-height: 1.6;">
+              <li>Ejecutando evaluación de la ventana de corte...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -329,7 +326,6 @@ function ejecutarAnalisisRecubrimiento() {
     if(!res.success) return;
     const data = res.data;
 
-    // Asignaciones seguras con verificación de existencia de elemento
     const elTCorte = document.getElementById('res-t-corte');
     if (elTCorte) elTCorte.innerText = data.temperatura.t_corte_c.toFixed(1) + " °C";
 
@@ -338,7 +334,7 @@ function ejecutarAnalisisRecubrimiento() {
 
     const elStatus = document.getElementById('res-t-status');
     if (elStatus) {
-      if (data.temperatura.estado === 'SOBRE_TEMPERATURA') {
+      if (data.temperatura.estado === 'SOBREPASA_LIMITE' || data.temperatura.estado === 'SOBRE_TEMPERATURA') {
         elStatus.innerHTML = `⚠️ <span class="text-danger fw-bold">SOBRECALENTAMIENTO (&gt; ${data.temperatura.tmax_recubrimiento_c}°C)</span>`;
       } else {
         elStatus.innerHTML = `Límite Térmico Capa: <span id="res-t-max" class="text-light font-monospace">${data.temperatura.tmax_recubrimiento_c} °C</span>`;
@@ -404,11 +400,11 @@ function actualizarPanelRecomendacionesIA(inputs, res) {
     const vcOptima = Math.round(inputs.vc_m_min * 1.12);
     accionesUl.innerHTML += `<li class="mb-1">Se puede incrementar Vc hasta un 12% (~<strong>${vcOptima} m/min</strong>) para elevar el MRR sin comprometer la vida de la capa.</li>`;
     accionesUl.innerHTML += `<li>Condiciones estables para mecanizado desatendido.</li>`;
-    // Notificar al motor de IA en el cliente
-if (typeof capturarYGuardarContextoLocal === 'function') {
+  }
+
+  if (typeof capturarYGuardarContextoLocal === 'function') {
     capturarYGuardarContextoLocal();
     triggerAutoAI();
-}
   }
 }
 

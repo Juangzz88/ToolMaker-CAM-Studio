@@ -37,7 +37,7 @@
 }
 .panel-box {
     background-color: #111a36 !important;
-    border: 1px solid #2a3a5e !important;
+    border: 1px solid #334155 !important;
 }
 
 .viewport-hud-wrapper {
@@ -99,31 +99,39 @@
 }
 </style>
 
+<!-- ENCABEZADO DE MÓDULO UNIFICADO Y ESTANDARIZADO -->
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                <rect x="3" y="7" width="18" height="2" fill="#38bdf8"/>
+            </svg>
+            <span>Configuración de Operación CAM</span>
+        </h5>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
+            🖨️ Exportar Hoja CNC
+        </button>
+
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked onclick="cambiarUnidadM1('mm')">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+            
+            <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in" onclick="cambiarUnidadM1('in')">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
     <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE OPERACIÓN CAM -->
     <div class="col-lg-7 col-md-12">
         <div class="card card-custom p-4">
             
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
-                    <span>Configuración de Operación CAM</span>
-                </h5>
-                
-                <div class="d-flex gap-2 align-items-center">
-                    <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
-                        🖨️ Exportar Hoja CNC
-                    </button>
-
-                    <div class="btn-group" role="group">
-                        <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked onclick="cambiarUnidadM1('mm')">
-                        <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
-                        
-                        <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in" onclick="cambiarUnidadM1('in')">
-                        <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
-                    </div>
-                </div>
-            </div>
-
             <div class="row g-2 mb-3">
                 <div class="col-6">
                     <label class="form-label w-100 text-center fw-bold">Forma de Rueda (FEPA)</label>
@@ -446,7 +454,6 @@ const muelasPorOperacion = {
 };
 
 function cargarDatosTransferidos() {
-    // 1. Transferencia desde Módulo 2 (Fresas)
     const toolDataStr = localStorage.getItem('toolmaker_active_tool');
     if (toolDataStr) {
         try {
@@ -464,7 +471,6 @@ function cargarDatosTransferidos() {
         } catch(e) { console.error("Error al cargar herramienta transferida", e); }
     }
 
-    // 2. Transferencia desde Módulo 4 (Abrasivos FEPA)
     const fepaDataStr = localStorage.getItem('toolmaker_fepa_muela');
     if (fepaDataStr) {
         try {
@@ -481,7 +487,6 @@ function cargarDatosTransferidos() {
         } catch(e) { console.error("Error al cargar muela FEPA transferida", e); }
     }
 
-    // 3. Transferencia desde Módulo 3 (Brocas Carburo)
     const brocaDataStr = localStorage.getItem('toolmaker_broca_transfer');
     if (brocaDataStr) {
         try {
@@ -641,7 +646,6 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     const w = rect.width;
     const h = rect.height;
 
-    // Grid de fondo
     if (renderGrid) {
         ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
         ctx.lineWidth = 1;
@@ -672,12 +676,10 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     ctx.lineWidth = 1.8;
 
     if (forma === '1V1') {
-        // 1. DISCO DOMO 1V1 (Cuerpo cónico metálico + Capa abrasiva frontal)
         const topR = rD * 0.55;
         const botR = rD;
         const h1V1 = bodyH * 0.75;
 
-        // Cuerpo cónico metálico (Cyan)
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.beginPath();
@@ -687,13 +689,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.ellipse(0, 0, botR, botR * 0.22, 0, 0, Math.PI, true);
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
         ctx.beginPath();
         ctx.ellipse(0, -h1V1 * 0.25, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Capa Abrasiva de Diamante/CBN (Marrón Ámbar)
         const xOffsetR = topR + (botR - topR) * 0.35;
         const xOffsetH = h1V1 * 0.65;
         ctx.strokeStyle = '#b45309';
@@ -707,13 +707,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
     } else if (forma === '11V9' || forma === '11V5') {
-        // 2. COPA CÓNICA TRADICIONAL 11V9 / 11V5
         const is11V5 = (forma === '11V5');
         const topR = rD;
         const botR = rD * (is11V5 ? 0.75 : 0.60);
         const hCopa = is11V5 ? bodyH * 0.8 : bodyH * 1.15;
 
-        // Cuerpo cónico abierto hacia arriba (Cyan)
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.beginPath();
@@ -723,13 +721,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.ellipse(0, -hCopa, topR, topR * 0.22, 0, 0, Math.PI, true);
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
         ctx.beginPath();
         ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Banda Abrasiva en la boca frontal superior (Marrón Ámbar)
         const innerR = topR * 0.88;
         const bandH = hCopa * 0.35;
         ctx.strokeStyle = '#b45309';
@@ -747,12 +743,10 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
     } else if (forma === '12V9' || forma === '12A2') {
-        // 3. COPA PLANA 12A2-45° / 12V9
         const topR = rD;
         const botR = rD * 0.65;
         const hPlato = bodyH * 0.95;
 
-        // Cuerpo cónico a 45°
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.beginPath();
@@ -762,13 +756,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.ellipse(0, -hPlato, topR, topR * 0.22, 0, 0, Math.PI, true);
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
         ctx.beginPath();
         ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Anillo Abrasivo Frontal Plano W x X sobre la cara superior
         const innerR = topR * 0.82;
         ctx.strokeStyle = '#b45309';
         ctx.fillStyle = 'rgba(180, 83, 9, 0.85)';
@@ -779,7 +771,6 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.fill(); ctx.stroke();
 
     } else {
-        // 4. DISCO PLANO RECTO 1A1 O 14A1
         ctx.strokeStyle = '#38bdf8';
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.beginPath();
@@ -790,13 +781,11 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.ellipse(0, -bodyH / 2, rD, ry, 0, 0, Math.PI, true);
         ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // Agujero H
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
         ctx.beginPath();
         ctx.ellipse(0, -bodyH / 2, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Banda abrasiva periférica (Marrón Ámbar)
         ctx.strokeStyle = '#b45309';
         ctx.fillStyle = 'rgba(180, 83, 9, 0.65)';
         ctx.beginPath();
@@ -806,7 +795,6 @@ function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
         ctx.closePath(); ctx.fill(); ctx.stroke();
     }
 
-    // Cotas y Leyenda
     if (renderCotas) {
         ctx.fillStyle = '#94a3b8';
         ctx.font = '10px "JetBrains Mono", monospace';
