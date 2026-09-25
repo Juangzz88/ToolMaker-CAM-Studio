@@ -2,7 +2,6 @@
 {% block title %}Módulo 2: Geometría de Herramienta{% endblock %}
 
 {% block content %}
-<!-- Carga de Chart.js para el gráfico radar -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -122,7 +121,7 @@
             <div class="row g-2 mb-3">
                 <div class="col-6">
                     <label class="form-label w-100 text-center fw-bold">Tipo de Herramienta</label>
-                    <select id="tipo_herramienta" class="form-select border-info enter-next">
+                    <select id="tipo_herramienta" class="form-select border-accent fw-bold enter-next">
                         <option value="plana" selected>Fresa Cilíndrica Plana (Square)</option>
                         <option value="esferica">Fresa Esférica (Ball Nose)</option>
                         <option value="toroidal">Fresa Toroidal (Bull Nose)</option>
@@ -211,7 +210,7 @@
 
                         <div class="col-4" id="box-val-esquina">
                             <div class="d-flex justify-content-center align-items-center mb-1" style="min-height: 23px;">
-                                <label class="form-label mb-0 fw-bold text-center " id="lbl-val-esquina">Radio Protec. (R)</label>
+                                <label class="form-label mb-0 fw-bold text-center" id="lbl-val-esquina">Radio Protec. (R)</label>
                             </div>
                             <div class="input-group">
                                 <input type="number" id="val_esquina" class="form-control enter-next text-center" value="0.24" step="any" required>
@@ -251,6 +250,7 @@
                     </div>
                 </div>
 
+                <!-- SECCIÓN GEOMETRÍA ANTI-VIBRACIÓN -->
                 <div class="p-3 mb-3 rounded border border-secondary panel-box">
                     <h6 class="text-info text-center fw-bold mb-2">Geometría Anti-Vibración (Hélice & Indexado)</h6>
                     
@@ -289,17 +289,20 @@
                     </div>
                 </div>
 
-                <div class="row g-2 mb-3" id="sec-core-taper">
-                    <div class="col-12">
-                        <label class="form-label w-100 text-center fw-bold d-flex align-items-center justify-content-center">
-                            Conicidad Núcleo (Core Taper)
-                            <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
-                                  title="Conicidad del Núcleo (Core Taper)" 
-                                  data-bs-content="Incremento del diámetro del núcleo para evitar deflexión.">ℹ️</span>
-                        </label>
-                        <div class="input-group">
-                            <input type="number" id="core_taper_deg" class="form-control enter-next" value="0.5" step="any" required>
-                            <span class="input-group-text">°/lado</span>
+                <!-- SECCIÓN CONICIDAD NÚCLEO (CORE TAPER) - HOMOLOGADO CON MISMO PANEL-BOX -->
+                <div class="p-3 mb-3 rounded border border-secondary panel-box" id="sec-core-taper">
+                    <h6 class="text-info text-center fw-bold mb-2 d-flex align-items-center justify-content-center">
+                        Conicidad Núcleo (Core Taper)
+                        <span class="cad-info-btn" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" 
+                              title="Conicidad Núcleo (Core Taper)" 
+                              data-bs-content="Inclinación del núcleo en grados por lado para incrementar la rigidez en la raíz.">ℹ️</span>
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <input type="number" id="core_taper_deg" name="core_taper_deg" class="form-control enter-next text-center" value="0.5" step="0.1">
+                                <span class="input-group-text">°/lado</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -346,10 +349,10 @@
                 </div>
             </div>
 
-            <!-- TARJETA PROTECCIÓN DE PUNTA CORREGIDA (TEXTO SLATE CYAN) -->
+            <!-- TARJETA PROTECCIÓN DE PUNTA -->
             <div class="p-3 rounded border border-info mb-2 text-center panel-box">
-                <label class="d-block mb-1  fw-bold">PROTECCIÓN DE PUNTA / PERFIL:</label>
-                <span id="res-esquina" class="fs-4 fw-bold ">Plana Radio R0.240</span>
+                <label class="d-block mb-1 fw-bold">PROTECCIÓN DE PUNTA / PERFIL:</label>
+                <span id="res-esquina" class="fs-4 fw-bold">Plana Radio R0.240</span>
                 <div class="small text-light mt-1" id="box-sub-frente">
                     <span id="sub-dish-container">Concavidad Frontal (Dish): <span id="res-dish" class="text-accent fw-bold">2.0°</span> | </span>Rake Radial: <span id="res-rake" class="text-accent fw-bold">12.0°</span>
                 </div>
@@ -357,12 +360,12 @@
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
                 <label class="d-block mb-1 fw-bold">NÚCLEO PUNTA / RAIZ:</label>
-                <span id="res-dc-punta" class="fs-4 fw-bold ">3.72</span> / <span id="res-dc-raiz" class="fs-4 fw-bold ">4.24</span> <span class="small text-light unit-label">mm</span>
+                <span id="res-dc-punta" class="fs-4 fw-bold">3.72</span> / <span id="res-dc-raiz" class="fs-4 fw-bold">4.24</span> <span class="small text-light unit-label">mm</span>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
                 <label class="d-block mb-1 fw-bold">DIVISIÓN / INDEXADO ENTRE FILOS:</label>
-                <span id="res-index" class="fs-4 fw-bold ">88.0° / 92.0°</span>
+                <span id="res-index" class="fs-4 fw-bold">88.0° / 92.0°</span>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
@@ -372,13 +375,13 @@
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
                 <label class="d-block mb-1 fw-bold">ANCHO DE LANDAS (1° Y 2° RELIEF):</label>
-                <span id="res-landa1" class="fs-4 fw-bold ">0.36</span> + <span id="res-landa2" class="fs-4 fw-bold ">1.08</span> <span class="small text-light unit-label">mm</span>
+                <span id="res-landa1" class="fs-4 fw-bold">0.36</span> + <span id="res-landa2" class="fs-4 fw-bold">1.08</span> <span class="small text-light unit-label">mm</span>
                 <div class="small text-light mt-1">Ancho Total de Diente: <span id="res-ancho-total-diente" class="text-accent fw-bold">1.44 mm</span></div>
             </div>
 
             <div class="p-3 rounded border border-secondary text-center panel-box">
                 <label class="d-block mb-1 fw-bold">ÍNDICE DE RIGIDEZ ESTRUCTURAL (Iz):</label>
-                <span id="res-rigidez" class="fs-4 fw-bold ">14.8%</span>
+                <span id="res-rigidez" class="fs-4 fw-bold">14.8%</span>
                 <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Rigidez Estándar</div>
             </div>
         </div>
@@ -711,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     inicializarGraficoRadar();
     actualizarBadgeISO();
-    document.getElementById('tipo_herramienta').dispatchEvent(new Event('change'));
+    document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
 });
 
 function inicializarGraficoRadar() {
@@ -778,12 +781,12 @@ function actualizarGraficoRadar(rigidezRelativa, z, pctNucleo, tipoHelice, rakeR
 }
 
 function calcularLongitudCorteAutomatica() {
-    const tipoTool = document.getElementById('tipo_herramienta').value;
+    const tipoTool = document.getElementById('tipo_herramienta')?.value;
     if (tipoTool !== 'conica') return;
 
-    const d1 = parseFloat(document.getElementById('diametro_ext').value || 0);
-    const d2 = parseFloat(document.getElementById('diametro_d2').value || 0);
-    const ang = parseFloat(document.getElementById('angulo_conicidad').value || 0);
+    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 0);
+    const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 0);
+    const ang = parseFloat(document.getElementById('angulo_conicidad')?.value || 0);
 
     const inputLc = document.getElementById('longitud_corte');
 
@@ -793,10 +796,10 @@ function calcularLongitudCorteAutomatica() {
         const dec = (currentUnit === 'in') ? 4 : 3;
         if (inputLc) inputLc.value = lcCalculado.toFixed(dec);
     } else {
-        // Protección contra D2 <= D1
         if (inputLc) inputLc.value = (d1 * 2.5).toFixed(currentUnit === 'in' ? 4 : 3);
     }
 }
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const activeElement = document.activeElement;
@@ -818,12 +821,12 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-['diametro_ext', 'diametro_d2', 'angulo_conicidad', 'pct_nucleo', 'num_canales', 'rake_radial', 'longitud_corte', 'val_esquina', 'helice_a'].forEach(id => {
+['diametro_ext', 'diametro_d2', 'angulo_conicidad', 'pct_nucleo', 'num_canales', 'rake_radial', 'longitud_corte', 'val_esquina', 'helice_a', 'core_taper_deg'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('input', function() {
-            const tipoTool = document.getElementById('tipo_herramienta').value;
-            const d1 = parseFloat(document.getElementById('diametro_ext').value || 0);
+            const tipoTool = document.getElementById('tipo_herramienta')?.value;
+            const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 0);
             const valEsqInput = document.getElementById('val_esquina');
             const dec = (currentUnit === 'in') ? 4 : 3;
 
@@ -842,7 +845,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-document.getElementById('tipo_herramienta').addEventListener('change', function() {
+document.getElementById('tipo_herramienta')?.addEventListener('change', function() {
     const val = this.value;
     const boxTipoEsq = document.getElementById('box-tipo-esquina');
     const boxValEsq = document.getElementById('box-val-esquina');
@@ -856,83 +859,101 @@ document.getElementById('tipo_herramienta').addEventListener('change', function(
     const lblLc = document.getElementById('lbl-long-corte');
     const inputLc = document.getElementById('longitud_corte');
 
-    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
+    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
     const dec = (currentUnit === 'in') ? 4 : 3;
 
     if (val === 'conica') {
-        boxConicidad.classList.remove('d-none');
-        boxD2Conico.classList.remove('d-none');
-        secCoreTaper.classList.add('d-none');
-        lblDiamExt.textContent = "Diámetro Punta (D1)";
-        lblLc.textContent = "Long. Corte Calculada (Lc)";
-        inputLc.disabled = true;
-        inputLc.style.backgroundColor = "#1a264a";
-        inputLc.style.color = "#38bdf8";
+        boxConicidad?.classList.remove('d-none');
+        boxD2Conico?.classList.remove('d-none');
+        secCoreTaper?.classList.add('d-none');
+        if (lblDiamExt) lblDiamExt.textContent = "Diámetro Punta (D1)";
+        if (lblLc) lblLc.textContent = "Long. Corte Calculada (Lc)";
+        if (inputLc) {
+            inputLc.disabled = true;
+            inputLc.style.backgroundColor = "#1a264a";
+            inputLc.style.color = "#38bdf8";
+        }
         
-        boxTipoEsq.classList.remove('d-none');
-        boxDish.classList.remove('d-none');
-        if (subDishContainer) subDishContainer.classList.remove('d-none');
-        boxValEsq.classList.remove('d-none');
-        valEsqInput.disabled = false;
+        boxTipoEsq?.classList.remove('d-none');
+        boxDish?.classList.remove('d-none');
+        subDishContainer?.classList.remove('d-none');
+        boxValEsq?.classList.remove('d-none');
+        if (valEsqInput) valEsqInput.disabled = false;
         
         calcularLongitudCorteAutomatica();
     } else {
-        boxConicidad.classList.add('d-none');
-        boxD2Conico.classList.add('d-none');
-        secCoreTaper.classList.remove('d-none');
-        lblDiamExt.textContent = "Diámetro Exterior (D1)";
-        lblLc.textContent = "Longitud de Corte (Lc)";
-        inputLc.disabled = false;
-        inputLc.style.backgroundColor = "";
-        inputLc.style.color = "";
+        boxConicidad?.classList.add('d-none');
+        boxD2Conico?.classList.add('d-none');
+        secCoreTaper?.classList.remove('d-none');
+        if (lblDiamExt) lblDiamExt.textContent = "Diámetro Exterior (D1)";
+        if (lblLc) lblLc.textContent = "Longitud de Corte (Lc)";
+        if (inputLc) {
+            inputLc.disabled = false;
+            inputLc.style.backgroundColor = "";
+            inputLc.style.color = "";
+        }
 
         if (val === 'esferica') {
-            boxTipoEsq.classList.add('d-none');
-            boxDish.classList.add('d-none');
-            if (subDishContainer) subDishContainer.classList.add('d-none');
-            boxValEsq.classList.remove('d-none');
-            valEsqInput.value = (d1 / 2.0).toFixed(dec);
-            valEsqInput.disabled = true;
-            document.getElementById('lbl-val-esquina').textContent = 'Radio Esférico (R=D/2)';
+            boxTipoEsq?.classList.add('d-none');
+            boxDish?.classList.add('d-none');
+            subDishContainer?.classList.add('d-none');
+            boxValEsq?.classList.remove('d-none');
+            if (valEsqInput) {
+                valEsqInput.value = (d1 / 2.0).toFixed(dec);
+                valEsqInput.disabled = true;
+            }
+            const lblValEsq = document.getElementById('lbl-val-esquina');
+            if (lblValEsq) lblValEsq.textContent = 'Radio Esférico (R=D/2)';
         } else if (val === 'toroidal') {
-            boxTipoEsq.classList.add('d-none');
-            boxDish.classList.remove('d-none');
-            if (subDishContainer) subDishContainer.classList.remove('d-none');
-            boxValEsq.classList.remove('d-none');
-            valEsqInput.disabled = false;
-            if (parseFloat(valEsqInput.value) >= d1 / 2.0) valEsqInput.value = (d1 * 0.1).toFixed(dec);
-            document.getElementById('lbl-val-esquina').textContent = 'Radio Toroidal (R)';
+            boxTipoEsq?.classList.add('d-none');
+            boxDish?.classList.remove('d-none');
+            subDishContainer?.classList.remove('d-none');
+            boxValEsq?.classList.remove('d-none');
+            if (valEsqInput) {
+                valEsqInput.disabled = false;
+                if (parseFloat(valEsqInput.value) >= d1 / 2.0) valEsqInput.value = (d1 * 0.1).toFixed(dec);
+            }
+            const lblValEsq = document.getElementById('lbl-val-esquina');
+            if (lblValEsq) lblValEsq.textContent = 'Radio Toroidal (R)';
         } else {
-            boxTipoEsq.classList.remove('d-none');
-            boxDish.classList.remove('d-none');
-            if (subDishContainer) subDishContainer.classList.remove('d-none');
-            boxValEsq.classList.remove('d-none');
-            valEsqInput.disabled = false;
-            
-            const radioProteccion = d1 * 0.04;
-            valEsqInput.value = radioProteccion.toFixed(dec);
-            document.getElementById('lbl-val-esquina').textContent = document.getElementById('tipo_esquina').value === 'chaflan' ? 'Ancho Chaflán' : 'Radio Protec. (R)';
+            boxTipoEsq?.classList.remove('d-none');
+            boxDish?.classList.remove('d-none');
+            subDishContainer?.classList.remove('d-none');
+            boxValEsq?.classList.remove('d-none');
+            if (valEsqInput) {
+                valEsqInput.disabled = false;
+                const radioProteccion = d1 * 0.04;
+                valEsqInput.value = radioProteccion.toFixed(dec);
+            }
+            const lblValEsq = document.getElementById('lbl-val-esquina');
+            const tipoEsqVal = document.getElementById('tipo_esquina')?.value;
+            if (lblValEsq) lblValEsq.textContent = tipoEsqVal === 'chaflan' ? 'Ancho Chaflán' : 'Radio Protec. (R)';
         }
     }
     ejecutarCalculoGeometria();
 });
 
-document.getElementById('tipo_helice').addEventListener('change', function() {
+document.getElementById('tipo_helice')?.addEventListener('change', function() {
     const isVar = (this.value === 'variable');
     const groupVar = document.getElementById('group-var-helix');
-    if (isVar) groupVar.classList.remove('d-none');
-    else groupVar.classList.add('d-none');
+    if (groupVar) {
+        if (isVar) groupVar.classList.remove('d-none');
+        else groupVar.classList.add('d-none');
+    }
     ejecutarCalculoGeometria();
 });
 
-document.getElementById('tipo_esquina').addEventListener('change', function() {
+document.getElementById('tipo_esquina')?.addEventListener('change', function() {
     const lbl = document.getElementById('lbl-val-esquina');
-    if (this.value === 'chaflan') lbl.textContent = 'Ancho Chaflán';
-    else lbl.textContent = (document.getElementById('tipo_herramienta').value === 'plana') ? 'Radio Protec. (R)' : 'Radio (R)';
+    const tipoTool = document.getElementById('tipo_herramienta')?.value;
+    if (lbl) {
+        if (this.value === 'chaflan') lbl.textContent = 'Ancho Chaflán';
+        else lbl.textContent = (tipoTool === 'plana') ? 'Radio Protec. (R)' : 'Radio (R)';
+    }
     ejecutarCalculoGeometria();
 });
 
-document.getElementById('preset_material').addEventListener('change', function() {
+document.getElementById('preset_material')?.addEventListener('change', function() {
     const val = this.value;
     if (val === 'acero') {
         document.getElementById('num_canales').value = 4;
@@ -960,7 +981,7 @@ document.getElementById('preset_material').addEventListener('change', function()
         document.getElementById('rake_radial').value = 8;
         document.getElementById('dish_angle').value = 1.5;
     }
-    document.getElementById('tipo_helice').dispatchEvent(new Event('change'));
+    document.getElementById('tipo_helice')?.dispatchEvent(new Event('change'));
 });
 
 document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
@@ -982,17 +1003,17 @@ document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
         currentUnit = newUnit;
         document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
         actualizarBadgeISO();
-        document.getElementById('tipo_herramienta').dispatchEvent(new Event('change'));
+        document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
     });
 });
 
-document.getElementById('btn-transfer').addEventListener('click', function() {
-    const tipoTool = document.getElementById('tipo_herramienta').value;
-    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
-    const d2 = parseFloat(document.getElementById('diametro_d2').value || 16);
-    const z = parseInt(document.getElementById('num_canales').value || 4);
-    const pctDc = parseFloat(document.getElementById('pct_nucleo').value || 62);
-    const lc = parseFloat(document.getElementById('longitud_corte').value || 30);
+document.getElementById('btn-transfer')?.addEventListener('click', function() {
+    const tipoTool = document.getElementById('tipo_herramienta')?.value || 'plana';
+    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
+    const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 16);
+    const z = parseInt(document.getElementById('num_canales')?.value || 4);
+    const pctDc = parseFloat(document.getElementById('pct_nucleo')?.value || 62);
+    const lc = parseFloat(document.getElementById('longitud_corte')?.value || 30);
 
     let dCalc = d1;
     if (tipoTool === 'conica') dCalc = (d1 + d2) / 2.0;
@@ -1013,25 +1034,26 @@ document.getElementById('btn-transfer').addEventListener('click', function() {
 });
 
 async function ejecutarCalculoGeometria() {
-    const tipoTool = document.getElementById('tipo_herramienta').value;
-    const d1 = parseFloat(document.getElementById('diametro_ext').value || 12);
-    const d2 = parseFloat(document.getElementById('diametro_d2').value || 16);
-    const z = parseInt(document.getElementById('num_canales').value || 4);
-    const pctDc = parseFloat(document.getElementById('pct_nucleo').value || 62);
-    const lc = parseFloat(document.getElementById('longitud_corte').value || 30);
-    const taper = parseFloat(document.getElementById('core_taper_deg').value || 0.5);
-    const angCon = parseFloat(document.getElementById('angulo_conicidad').value || 5.0);
-    const tipoEsq = document.getElementById('tipo_esquina').value;
-    const tipoHel = document.getElementById('tipo_helice').value;
-    const rake = parseFloat(document.getElementById('rake_radial').value || 12.0);
+    const tipoTool = document.getElementById('tipo_herramienta')?.value || 'plana';
+    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
+    const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 16);
+    const z = parseInt(document.getElementById('num_canales')?.value || 4);
+    const pctDc = parseFloat(document.getElementById('pct_nucleo')?.value || 62);
+    const lc = parseFloat(document.getElementById('longitud_corte')?.value || 30);
+    const taper = parseFloat(document.getElementById('core_taper_deg')?.value || 0.5);
+    const angCon = parseFloat(document.getElementById('angulo_conicidad')?.value || 5.0);
+    const tipoEsq = document.getElementById('tipo_esquina')?.value || 'radio';
+    const tipoHel = document.getElementById('tipo_helice')?.value || 'variable';
+    const rake = parseFloat(document.getElementById('rake_radial')?.value || 12.0);
     
-    let valEsq = parseFloat(document.getElementById('val_esquina').value || 0.5);
+    let valEsq = parseFloat(document.getElementById('val_esquina')?.value || 0.5);
     if (tipoTool === 'esferica') {
         valEsq = d1 / 2.0;
-        document.getElementById('val_esquina').value = valEsq.toFixed(currentUnit === 'in' ? 4 : 3);
+        const valEsqInput = document.getElementById('val_esquina');
+        if (valEsqInput) valEsqInput.value = valEsq.toFixed(currentUnit === 'in' ? 4 : 3);
     }
 
-    const dish = parseFloat(document.getElementById('dish_angle').value || 2.0);
+    const dish = parseFloat(document.getElementById('dish_angle')?.value || 2.0);
 
     let dcPunta = d1 * (pctDc / 100.0);
     if (tipoTool === 'esferica') dcPunta = dcPunta * 0.75;
@@ -1044,11 +1066,20 @@ async function ejecutarCalculoGeometria() {
 
     const dec = (currentUnit === 'in') ? 4 : 3;
 
-    document.getElementById('res-dc-punta').textContent = dcPunta.toFixed(dec);
-    document.getElementById('res-dc-raiz').textContent = dcRaiz.toFixed(dec);
-    document.getElementById('res-landa1').textContent = l1.toFixed(dec);
-    document.getElementById('res-landa2').textContent = l2.toFixed(dec);
-    document.getElementById('res-ancho-total-diente').textContent = anchoTotal.toFixed(dec) + " " + currentUnit;
+    const resPunta = document.getElementById('res-dc-punta');
+    const resRaiz = document.getElementById('res-dc-raiz');
+    const resLanda1 = document.getElementById('res-landa1');
+    const resLanda2 = document.getElementById('res-landa2');
+    const resAnchoDiente = document.getElementById('res-ancho-total-diente');
+    const resEsquina = document.getElementById('res-esquina');
+    const resDish = document.getElementById('res-dish');
+    const resRake = document.getElementById('res-rake');
+
+    if (resPunta) resPunta.textContent = dcPunta.toFixed(dec);
+    if (resRaiz) resRaiz.textContent = dcRaiz.toFixed(dec);
+    if (resLanda1) resLanda1.textContent = l1.toFixed(dec);
+    if (resLanda2) resLanda2.textContent = l2.toFixed(dec);
+    if (resAnchoDiente) resAnchoDiente.textContent = anchoTotal.toFixed(dec) + " " + currentUnit;
     
     let strEsqLocal = `Radio R${valEsq.toFixed(dec)}`;
     if (tipoTool === 'esferica') strEsqLocal = `Esférica Completa (R${(d1/2).toFixed(dec)})`;
@@ -1058,9 +1089,9 @@ async function ejecutarCalculoGeometria() {
     }
     else if (tipoEsq === 'chaflan') strEsqLocal = `Chaflán ${valEsq.toFixed(dec)} x 45°`;
 
-    document.getElementById('res-esquina').textContent = strEsqLocal;
-    document.getElementById('res-dish').textContent = dish.toFixed(1) + "°";
-    document.getElementById('res-rake').textContent = rake.toFixed(1) + "°";
+    if (resEsquina) resEsquina.textContent = strEsqLocal;
+    if (resDish) resDish.textContent = dish.toFixed(1) + "°";
+    if (resRake) resRake.textContent = rake.toFixed(1) + "°";
 
     const rigidezCalc = ((dcPunta / d1) ** 4) * 100.0;
     actualizarGraficoRadar(rigidezCalc, z, pctDc, tipoHel, rake);
@@ -1073,9 +1104,9 @@ async function ejecutarCalculoGeometria() {
         diametro_d2: d2,
         num_canales: z,
         tipo_helice: tipoHel,
-        helice_a: parseFloat(document.getElementById('helice_a').value || 35),
-        helice_b: parseFloat(document.getElementById('helice_b').value || 38),
-        delta_index: parseFloat(document.getElementById('delta_index').value || 2.0),
+        helice_a: parseFloat(document.getElementById('helice_a')?.value || 35),
+        helice_b: parseFloat(document.getElementById('helice_b')?.value || 38),
+        delta_index: parseFloat(document.getElementById('delta_index')?.value || 2.0),
         pct_nucleo: pctDc,
         longitud_corte: lc,
         core_taper_deg: taper,
@@ -1094,18 +1125,25 @@ async function ejecutarCalculoGeometria() {
         });
         const json = await res.json();
         if (json.success) {
-            document.getElementById('res-dc-punta').textContent = json.diametro_nucleo_punta;
-            document.getElementById('res-dc-raiz').textContent = json.diametro_nucleo_raiz;
-            document.getElementById('res-index').textContent = json.indexado_str;
-            document.getElementById('res-lead').textContent = json.paso_helice_str;
-            document.getElementById('res-esquina').textContent = json.esquina_str || strEsqLocal;
-            document.getElementById('res-dish').textContent = (json.dish_angle !== undefined ? json.dish_angle : dish.toFixed(1)) + "°";
-            document.getElementById('res-rake').textContent = (json.rake_radial !== undefined ? json.rake_radial : rake.toFixed(1)) + "°";
-            document.getElementById('res-rigidez').textContent = json.rigidez_relativa + "%";
-
+            if (resPunta) resPunta.textContent = json.diametro_nucleo_punta;
+            if (resRaiz) resRaiz.textContent = json.diametro_nucleo_raiz;
+            
+            const resIndex = document.getElementById('res-index');
+            const resLead = document.getElementById('res-lead');
+            const resRigidez = document.getElementById('res-rigidez');
             const estRig = document.getElementById('est-rigidez');
-            estRig.textContent = json.estado_rigidez;
-            estRig.className = "small fw-bold mt-1 " + json.clase_rigidez;
+
+            if (resIndex) resIndex.textContent = json.indexado_str || "90.0° / 90.0°";
+            if (resLead) resLead.textContent = json.paso_helice_str || "25.0";
+            if (resEsquina) resEsquina.textContent = json.esquina_str || strEsqLocal;
+            if (resDish) resDish.textContent = (json.dish_angle !== undefined ? json.dish_angle : dish.toFixed(1)) + "°";
+            if (resRake) resRake.textContent = (json.rake_radial !== undefined ? json.rake_radial : rake.toFixed(1)) + "°";
+            if (resRigidez) resRigidez.textContent = json.rigidez_relativa + "%";
+
+            if (estRig) {
+                estRig.textContent = json.estado_rigidez;
+                estRig.className = "small fw-bold mt-1 " + json.clase_rigidez;
+            }
 
             actualizarGraficoRadar(json.rigidez_relativa, z, pctDc, tipoHel, rake);
         }
