@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ToolMaker CAM Studio{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Fuentes Google (Inter + JetBrains Mono) & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --slate-bg: #0b1120;
+      --panel-bg: #111a36;
+      --border-color: #334155;
+      --cyan-accent: #38bdf8;
+      --cyan-glow: #00f2fe;
+    }
+
+    body {
+      background-color: var(--slate-bg);
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      padding-bottom: 50px;
+    }
+
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+      width: 100vw;
+    }
+
+    .sidebar {
+      width: 65px;
+      background-color: #0f172a;
+      border-right: 1px solid #334155;
+      transition: width 0.25s ease-in-out;
+      overflow: hidden;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar:hover {
+      width: 280px;
+    }
+
+    .sidebar-brand {
+      height: 60px;
+      display: flex !important;
+      align-items: center !important;
+      padding: 0 18px !important;
+      border-bottom: 1px solid #334155;
+      color: #38bdf8;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .sidebar-brand svg {
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px !important;
+      min-height: 24px !important;
+      margin-right: 16px !important;
+      flex-shrink: 0 !important;
+      display: block !important;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      padding: 10px 0;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .sidebar-item {
+      margin: 4px 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    .sidebar-link svg {
+      width: 22px !important;
+      height: 22px !important;
+      min-width: 22px !important;
+      min-height: 22px !important;
+      margin-right: 16px !important;
+      flex-shrink: 0 !important;
+      display: inline-block !important;
+    }
+
+    .sidebar-link:hover {
+      background-color: #1e293b;
+      color: #f8fafc;
+    }
+
+    .sidebar-link.active {
+      background-color: #1e293b;
+      color: #38bdf8 !important;
+      border-left: 3px solid #38bdf8;
+    }
+
+    .nav-text {
+      font-size: 0.875rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .sidebar:hover .nav-text {
+      opacity: 1;
+    }
+
+    .main-wrapper {
+      flex-grow: 1;
+      width: calc(100vw - 65px);
+      background-color: #0b1120;
+      overflow-y: auto;
+    }
+
+    input.form-control, 
+    select.form-select, 
+    .param-value, 
+    .input-group-text {
+      text-align: center !important;
+    }
+
+    .card {
+      background-color: #1e293b !important;
+      border: 1px solid #334155 !important;
+      border-radius: 8px;
+    }
+
+    .param-value {
+      color: #38bdf8 !important; 
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 1.05rem !important;
+    }
+
+    .form-control, .form-select {
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+      color: #f8fafc !important;
+    }
+
+    .module-header-container {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      width: 100% !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .text-accent {
+      color: #00f2fe !important;
+    }
+
+    .status-ok {
+      color: #4ade80 !important;
+    }
+
+    .modal-fullscreen .modal-content {
+      background-color: #070c18 !important;
+      background-image: linear-gradient(rgba(51, 65, 85, 0.15) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    @media (min-width: 992px) {
+      .col-lg-2-4 {
+        flex: 0 0 auto;
+        width: 20% !important;
+      }
+    }
+
+    .module-card-preview {
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+      border-radius: 12px;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .module-card-preview:hover {
+      transform: translateY(-4px);
+      border-color: #38bdf8 !important;
+      box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.15);
+    }
+
+    .module-card-description {
+      color: #cbd5e1 !important;
+      font-size: 0.8rem !important;
+      line-height: 1.5 !important;
+    }
+
+    /* BARRA DOCK INFERIOR */
+    .ia-dock-container {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 1050px;
+      height: 38px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid #334155;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      z-index: 1080;
+      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.7);
+      transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+    }
+
+    .ia-dock-header {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      height: 38px;
+    }
+
+    .ia-dock-header:hover {
+      background-color: rgba(56, 189, 248, 0.05);
+    }
+
+    .ia-dock-body {
+      display: none;
+      padding: 0 16px 16px 16px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .ia-dock-container.expanded {
+      height: 260px;
+      border-color: #38bdf8;
+    }
+
+    .ia-dock-container.expanded .ia-dock-body {
+      display: block;
+      opacity: 1;
+      overflow-y: auto;
+      max-height: 215px;
+    }
+
+    .ia-badge {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid #00f2fe;
+      color: #00f2fe;
+      font-size: 0.68rem;
+      letter-spacing: 0.5px;
+    }
+
+    .ia-pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00f2fe;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px #00f2fe;
+      animation: pulse-glow 1.8s infinite;
+    }
+
+    @keyframes pulse-glow {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+      <a href="#" class="sidebar-brand" data-bs-toggle="modal" data-bs-target="#dashboardModal" title="Ver pantalla completa de módulos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="nav-text">ToolMaker CAM</span>
+      </a>
+
+      <ul class="sidebar-nav">
+        <!-- MÓDULO 1 -->
+        <li class="sidebar-item">
+          <a href="/calculadora-muelas" class="sidebar-link {% if active_module == 1 %}active{% endif %}" title="Módulo 1: Operaciones & Muelas">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <rect x="3" y="7" width="18" height="2" fill="#38bdf8"/>
+            </svg>
+            <span class="nav-text">Mód. 1: Operaciones & Muelas</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 2 -->
+        <li class="sidebar-item">
+          <a href="/geometria-herramienta" class="sidebar-link {% if active_module == 2 %}active{% endif %}" title="Módulo 2: Geometría de Fresas">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
+            </svg>
+            <span class="nav-text">Mód. 2: Geometría Fresas</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 3 -->
+        <li class="sidebar-item">
+          <a href="/geometria-brocas" class="sidebar-link {% if active_module == 3 %}active{% endif %}" title="Módulo 3: Brocas de Carburo">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M8 22 L8 8 L12 3 L16 8 L16 22 Z" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M12 3 L8 8" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M12 3 L16 8" stroke="#38bdf8" stroke-width="1.8"/>
+              <path d="M8 11 L16 15" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="M8 16 L16 20" stroke="#38bdf8" stroke-width="1.5"/>
+            </svg>
+            <span class="nav-text">Mód. 3: Brocas Carburo</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 4 -->
+        <li class="sidebar-item">
+          <a href="/catalogo-abrasivos" class="sidebar-link {% if active_module == 4 %}active{% endif %}" title="Módulo 4: Abrasivos FEPA">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="rgba(56, 189, 248, 0.15)"/>
+              <line x1="12" y1="2" x2="12" y2="22"/>
+            </svg>
+            <span class="nav-text">Mód. 4: Abrasivos FEPA</span>
+          </a>
+        </li>
+
+        <!-- MÓDULO 5 -->
+        <li class="sidebar-item">
+          <a href="/recubrimientos" class="sidebar-link {% if active_module == 5 %}active{% endif %}" title="Módulo 5: Recubrimientos PVD">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#00f2fe" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span class="nav-text">Mód. 5: Recubrimientos PVD</span>
+          </a>
+        </li>
+
+        <!-- ACCESOS AUXILIARES -->
+        <li class="sidebar-item my-2 border-top border-secondary pt-2">
+          <small class="text-secondary px-3 nav-text text-uppercase fw-bold" style="font-size: 0.65rem;">Diagnóstico Experto</small>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#modalTroubleshooting" title="Asistente de Fallas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              <circle cx="12" cy="12" r="3" fill="rgba(56, 189, 248, 0.2)"/>
+            </svg>
+            <span class="nav-text">Asistente Anti-Fallas</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#modalCarburo" title="Sustratos de Carburo (Co%)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <rect x="4" y="4" width="16" height="16" rx="2" fill="rgba(56, 189, 248, 0.15)"/>
+              <path d="M9 9h6v6H9z"/>
+            </svg>
+            <span class="nav-text">Sustrato Carburo (Co%)</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#modalDeflexion" title="Deflexión & Luneta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <path d="M4 12 Q 12 4, 20 12 T 4 12" fill="rgba(56, 189, 248, 0.15)"/>
+              <line x1="12" y1="12" x2="12" y2="20"/>
+            </svg>
+            <span class="nav-text">Deflexión & Luneta</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="#" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#modalMangos" title="Norma Mango DIN 6535">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8">
+              <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(56, 189, 248, 0.15)"/>
+              <line x1="8" y1="10" x2="16" y2="10"/>
+            </svg>
+            <span class="nav-text">Mango DIN 6535 / ISO h6</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <div class="main-wrapper">
+      <main class="container-fluid px-4 py-4">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- DOCK INFERIOR CON APERTURA EXCLUSIVA POR CLIC -->
+  <div id="iaDockWidget" class="ia-dock-container">
+    <div class="ia-dock-header" onclick="toggleIADock()">
+      <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+        <span class="ia-pulse-dot me-1"></span>
+        <span class="badge ia-badge px-2 py-1">EVALUADOR FÍSICO</span>
+        <small id="dock-summary" class="text-light text-truncate" style="max-width: 650px; font-size: 0.75rem;">
+          Sincronizado | Modifique cualquier valor en los formularios para evaluar...
+        </small>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-shrink-0">
+        <span id="dock-status-badge" class="badge bg-dark text-info border border-secondary" style="font-size: 0.65rem;">STANDBY</span>
+        <small class="text-accent fw-bold" id="dock-toggle-btn" style="font-size: 0.75rem;">▲ Ampliar</small>
+      </div>
+    </div>
+    
+    <div class="ia-dock-body border-top border-secondary mt-1">
+      <div id="aiAutoOutput" class="small text-light py-2" style="white-space: pre-wrap; font-size: 0.75rem; line-height: 1.5;">
+        Modifique cualquier parámetro para iniciar el análisis multiaxial en tiempo real por el Motor Físico Interno.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUITE -->
+  <div class="modal fade" id="dashboardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header border-bottom px-5 py-3" style="border-color: #334155 !important; background-color: #0f172a;">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-3 fs-4">
+            <svg style="width:30px; height:30px;" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>ToolMaker CAM Studio — Suite de Módulos</span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-5 d-flex align-items-center justify-content-center">
+          <div class="container-fluid" style="max-width: 1450px;">
+            <div class="row g-3 justify-content-center">
+              <div class="col-lg-2-4 col-md-4 col-sm-6">
+                <div class="card module-card-preview h-100 p-3 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="text-white mb-2 fs-6 fw-bold">Módulo 1: Operaciones & Muelas</h5>
+                    <p class="module-card-description mb-3">Monitoreo de parámetros físicos de rectificado CNC (Vs, Spindle, Ra, Q'w).</p>
+                  </div>
+                  <a href="/calculadora-muelas" class="btn btn-outline-info w-100 fw-bold btn-sm py-2">Ingresar</a>
+                </div>
+              </div>
+
+              <div class="col-lg-2-4 col-md-4 col-sm-6">
+                <div class="card module-card-preview h-100 p-3 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="text-white mb-2 fs-6 fw-bold">Módulo 2: Geometría Fresas</h5>
+                    <p class="module-card-description mb-3">Geometría para fresas cilíndricas, esféricas, toroidales e hélice variable.</p>
+                  </div>
+                  <a href="/geometria-herramienta" class="btn btn-outline-info w-100 fw-bold btn-sm py-2">Ingresar</a>
+                </div>
+              </div>
+
+              <div class="col-lg-2-4 col-md-4 col-sm-6">
+                <div class="card module-card-preview h-100 p-3 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="text-white mb-2 fs-6 fw-bold">Módulo 3: Brocas Carburo</h5>
+                    <p class="module-card-description mb-3">Geometría Split Point DIN 1412-C, fajas guía y fuerzas Kienzle.</p>
+                  </div>
+                  <a href="/geometria-brocas" class="btn btn-outline-info w-100 fw-bold btn-sm py-2">Ingresar</a>
+                </div>
+              </div>
+
+              <div class="col-lg-2-4 col-md-4 col-sm-6">
+                <div class="card module-card-preview h-100 p-3 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="text-white mb-2 fs-6 fw-bold">Módulo 4: Abrasivos FEPA</h5>
+                    <p class="module-card-description mb-3">Biblioteca FEPA Diamante/CBN, concentración y aglomerantes.</p>
+                  </div>
+                  <a href="/catalogo-abrasivos" class="btn btn-outline-info w-100 fw-bold btn-sm py-2">Ingresar</a>
+                </div>
+              </div>
+
+              <div class="col-lg-2-4 col-md-4 col-sm-6">
+                <div class="card module-card-preview h-100 p-3 text-center d-flex flex-column justify-content-between">
+                  <div>
+                    <h5 class="text-white mb-2 fs-6 fw-bold">Módulo 5: Recubrimientos PVD</h5>
+                    <p class="module-card-description mb-3">Análisis tribológico y desgaste bifásico de capas delgadas PVD/CVD.</p>
+                  </div>
+                  <a href="/recubrimientos" class="btn btn-outline-info w-100 fw-bold btn-sm py-2" style="border-color: #00f2fe !important; color: #00f2fe !important;">Ingresar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALES EXPERTOS -->
+  <div class="modal fade" id="modalCarburo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark border-secondary text-light">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-info fw-bold">Sustratos de Carburo Sólido</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body font-monospace">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Contenido de Cobalto (Co %):</label>
+            <select id="carburo_co" class="form-select bg-dark text-light border-secondary" onchange="calcCarburo()">
+              <option value="6">6% Co - Extra Duro / Resistencia al desgaste (HRC 65+)</option>
+              <option value="8">8% Co - Balanceado / Aceros e Inox</option>
+              <option value="10" selected>10% Co - Sub-micrón Estándar / Ranurado</option>
+              <option value="12">12% Co - Ultra Tenaz / Anti-Chipping</option>
+            </select>
+          </div>
+          <div class="p-3 rounded border border-secondary" style="background-color: #0f172a;">
+            <div class="small text-secondary mb-1">Módulo de Young (E): <span id="res-carb-e" class="text-info fw-bold">590 GPa</span></div>
+            <div class="small text-secondary mb-1">Fuerza de Corte Específica (kc1): <span id="res-carb-kc" class="text-info fw-bold">2800 N/mm²</span></div>
+            <div class="small text-secondary">Dureza Estimada: <span id="res-carb-hv" class="text-light fw-bold">1620 HV30</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalDeflexion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-dark border-secondary text-light">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-info fw-bold">📏 Calculador de Deflexión Elástica Industrial</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body font-monospace">
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small">Diámetro Exterior D (mm):</label>
+              <input type="number" id="def_D_ext" class="form-control bg-dark text-light border-secondary text-center" value="12.0" step="0.1" oninput="calcDeflexion()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Diámetro Núcleo d (mm):</label>
+              <input type="number" id="def_d" class="form-control bg-dark text-light border-secondary text-center" value="7.8" step="0.1" oninput="calcDeflexion()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Voladizo L (mm):</label>
+              <input type="number" id="def_l" class="form-control bg-dark text-light border-secondary text-center" value="35.0" step="1" oninput="calcDeflexion()">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <label class="form-label small">N° de Canales (Z):</label>
+              <input type="number" id="def_z" class="form-control bg-dark text-light border-secondary text-center" value="4" step="1" oninput="calcDeflexion()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Ángulo Hélice λ (°):</label>
+              <input type="number" id="def_helice" class="form-control bg-dark text-light border-secondary text-center" value="35" step="1" oninput="calcDeflexion()">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Fuerza Radial Frad (N):</label>
+              <input type="number" id="def_frad" class="form-control bg-dark text-light border-secondary text-center" value="150" step="10" oninput="calcDeflexion()">
+            </div>
+          </div>
+
+          <div class="p-3 rounded border border-secondary text-center" style="background-color: #0f172a;">
+            <div class="row g-2 mb-2 border-bottom border-secondary pb-2">
+              <div class="col-6 text-start">
+                <small class="text-secondary">Proporción de Núcleo (%d/D):</small>
+                <div id="res-pct-nucleo-val" class="fw-bold text-light">65.0 %</div>
+              </div>
+              <div class="col-6 text-end">
+                <small class="text-secondary">Inercia Efectiva (Iz):</small>
+                <div id="res-iz-efectivo-val" class="fw-bold text-info">136.0 mm⁴</div>
+              </div>
+            </div>
+
+            <div class="small text-secondary mb-1">Deflexión Estimada en Fabricación / Corte:</div>
+            <div id="res-def-val" class="fs-3 fw-bold text-info">0.0032 mm</div>
+            <div id="res-def-status" class="small mt-2 fw-bold text-success">✅ Proceso Estable (Sin necesidad de Luneta)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalMangos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark border-secondary text-light">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-info fw-bold">📐 Especificación Mango DIN 6535 / ISO h6</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body font-monospace">
+          <div class="mb-3">
+            <label class="form-label small">Forma de Mango (DIN 6535):</label>
+            <select id="din_forma" class="form-select bg-dark text-light border-secondary" onchange="calcDin6535()">
+              <option value="HA">Forma HA - Cilíndrico Liso (Hydro/Shrink)</option>
+              <option value="HB">Forma HB - Weldon con Plano (Anti-Deslizamiento)</option>
+              <option value="HE">Forma HE - Whistle Notch (Inclinado 2°)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Diámetro Nominal Mango (mm):</label>
+            <select id="din_diam" class="form-select bg-dark text-light border-secondary" onchange="calcDin6535()">
+              <option value="6">Ø 6.0 mm (Tol. ISO h6: 0 / -0.008 mm)</option>
+              <option value="8">Ø 8.0 mm (Tol. ISO h6: 0 / -0.009 mm)</option>
+              <option value="10" selected>Ø 10.0 mm (Tol. ISO h6: 0 / -0.009 mm)</option>
+              <option value="12">Ø 12.0 mm (Tol. ISO h6: 0 / -0.011 mm)</option>
+              <option value="16">Ø 16.0 mm (Tol. ISO h6: 0 / -0.011 mm)</option>
+            </select>
+          </div>
+          <div class="p-3 rounded border border-secondary" style="background-color: #0f172a;">
+            <div class="small text-secondary mb-1">Fuerza de Sujeción Recomendada: <span id="res-din-force" class="text-light fw-bold">> 130 Nm</span></div>
+            <div class="small text-secondary">Runout Máximo Permitido: <span class="text-light fw-bold">&lt; 0.003 mm</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalTroubleshooting" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-dark border-info text-light">
+        <div class="modal-header border-secondary" style="background-color: #0f172a;">
+          <h5 class="modal-title text-info fw-bold d-flex align-items-center gap-2">
+            <span>Asistente Experto de Corrección de Fallas CNC</span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 font-monospace">
+          <div class="mb-4">
+            <label class="form-label text-info fw-bold small">Seleccione la falla observada en máquina o herramienta:</label>
+            <select id="tb_sintoma" class="form-select bg-dark text-light border-info fw-bold" onchange="analizarFallaProceso()">
+              <option value="ninguno" selected>Seleccione un síntoma de proceso</option>
+              <option value="chipping">💥 Ruptura / Desportillamiento de filo (Chipping en arista)</option>
+              <option value="clogging">🌀 Atascamiento / Embotamiento de viruta en el canal</option>
+              <option value="thermal">🌡️ Quemado térmico / Fisuras en carburo (Overheating / Glazing)</option>
+              <option value="chatter">〰️ Marcas de vibración / Rugosidad excesiva (Chatter / Alta Ra)</option>
+              <option value="wheel_wear">📉 Desgaste prematuro de muela / Loss of Form (Borde deformado)</option>
+            </select>
+          </div>
+
+          <div id="tb_panel_diagnostico" class="p-3 rounded border border-secondary mb-3 d-none" style="background-color: #0f172a;">
+            <h6 class="text-info fw-bold mb-2 border-bottom border-secondary pb-2">🔍 Análisis de Causa Raíz Física:</h6>
+            <p id="tb_causa_texto" class="small text-light mb-3" style="line-height: 1.6;"></p>
+
+            <h6 class="text-info fw-bold mb-2 border-bottom border-secondary pb-2">💡 Acciones Correctivas Recomendadas:</h6>
+            <ul id="tb_acciones_lista" class="small text-light mb-3"></ul>
+
+            <div class="alert alert-dark border-info p-2 mb-0 d-flex justify-content-between align-items-center" style="background-color: #111a36;">
+              <span class="small text-white fw-bold">¿Desea aplicar estos ajustes al Módulo 1 en tiempo real?</span>
+              <button type="button" class="btn btn-sm btn-info text-dark fw-bold px-3" onclick="aplicarSolucionTroubleshooting()">
+                ⚡ Aplicar Solución
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE BOOTSTRAP BUNDLE -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- LÓGICA JAVASCRIPT GLOBAL EMBEBIDA -->
+  <script>
+  let autoAiTimer = null;
+
+  function toggleIADock() {
+    const dock = document.getElementById('iaDockWidget');
+    const btnText = document.getElementById('dock-toggle-btn');
+    if (dock) {
+      dock.classList.toggle('expanded');
+      if (btnText) {
+        btnText.textContent = dock.classList.contains('expanded') ? '▼ Colapsar' : '▲ Ampliar';
+      }
+    }
+  }
+
+  function capturarYGuardarContextoLocal() {
+    try {
+      const rutaActual = window.location.pathname;
+      let memoriaGlobal = JSON.parse(localStorage.getItem('TM_GLOBAL_TOOL_CONTEXT') || '{}');
+
+      const radioUnidad = document.querySelector('input[name="unidad"]:checked');
+      const unidadReal = radioUnidad ? radioUnidad.value : (window.currentUnit || 'mm');
+
+      const inputs = document.querySelectorAll('input, select');
+      let datosModulo = { unidad: unidadReal };
+
+      inputs.forEach(i => {
+        if ((i.id || i.name) && i.value !== "") {
+          if (i.name === 'unidad' || i.id === 'unit_mm' || i.id === 'unit_in') return;
+          datosModulo[i.id || i.name] = i.value;
+        }
+      });
+
+      const spansResultados = ['res-fz', 'res-mc', 'res-def-val', 'res-iz-efectivo-val'];
+      spansResultados.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const valNum = parseFloat(el.textContent.replace(/[^0-9.]/g, ''));
+          if (!isNaN(valNum)) datosModulo[id.replace(/-/g, '_')] = valNum;
+        }
+      });
+
+      if (rutaActual.includes('geometria-herramienta')) {
+        memoriaGlobal.geometria = Object.assign({}, memoriaGlobal.geometria || {}, datosModulo);
+      } else if (rutaActual.includes('recubrimientos')) {
+        memoriaGlobal.recubrimiento = Object.assign({}, memoriaGlobal.recubrimiento || {}, datosModulo);
+      } else if (rutaActual.includes('calculadora-muelas') || rutaActual === '/') {
+        memoriaGlobal.operacion = Object.assign({}, memoriaGlobal.operacion || {}, datosModulo);
+      } else if (rutaActual.includes('geometria-brocas')) {
+        memoriaGlobal.broca = Object.assign({}, memoriaGlobal.broca || {}, datosModulo);
+      } else if (rutaActual.includes('catalogo-abrasivos')) {
+        memoriaGlobal.abrasivo = Object.assign({}, memoriaGlobal.abrasivo || {}, datosModulo);
+      }
+
+      localStorage.setItem('TM_GLOBAL_TOOL_CONTEXT', JSON.stringify(memoriaGlobal));
+    } catch (err) {
+      console.error("[TM-Local] Error capturando contexto:", err);
+    }
+  }
+
+  function triggerAutoAI() {
+    clearTimeout(autoAiTimer);
+    const statusBadge = document.getElementById('dock-status-badge');
+    if (statusBadge) {
+      statusBadge.innerText = "CALCULANDO...";
+      statusBadge.className = "badge bg-warning text-dark font-monospace";
+    }
+
+    autoAiTimer = setTimeout(() => {
+      ejecutarSincronizacionCruzadaIA();
+    }, 600);
+  }
+
+  function ejecutarSincronizacionCruzadaIA() {
+    const statusBadge = document.getElementById('dock-status-badge');
+    const summaryText = document.getElementById('dock-summary');
+    const outputBox = document.getElementById('aiAutoOutput');
+
+    let contextoGlobal = {};
+    try {
+      contextoGlobal = JSON.parse(localStorage.getItem('TM_GLOBAL_TOOL_CONTEXT') || '{}');
+    } catch(e) {
+      contextoGlobal = {};
+    }
+
+    const moduloActual = window.location.pathname;
+
+    fetch('/api/auto-evaluar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        modulo: moduloActual,
+        contexto_cruzado: contextoGlobal
+      })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Fallo en el servidor`);
+      return res.json();
+    })
+    .then(data => {
+      if (data.status === 'error') throw new Error(data.diagnostico);
+
+      const esAlerta = data.alerta_critica;
+      if (statusBadge) {
+        statusBadge.innerText = esAlerta ? "ALERTA TÉCNICA" : "ONLINE (LOCAL)";
+        statusBadge.className = esAlerta 
+          ? "badge bg-danger text-white font-monospace" 
+          : "badge bg-success font-monospace";
+      }
+
+      const diagTexto = data.diagnostico || 'Parámetros evaluados correctamente.';
+      if (summaryText) {
+        summaryText.innerHTML = esAlerta
+          ? `<span class="text-danger fw-bold">⚠️ Desviación en parámetros de proceso</span>`
+          : `<span class="status-ok fw-bold">✅ Parámetros Nominales Seguros</span> | ${diagTexto.substring(0, 95)}...`;
+      }
+
+      if (outputBox) {
+        outputBox.innerText = `[${(data.provider || 'MOTOR LOCAL').toUpperCase()}]\n` + diagTexto;
+      }
+    })
+    .catch(err => {
+      if (statusBadge) {
+        statusBadge.innerText = "ERROR DE MOTOR";
+        statusBadge.className = "badge bg-danger text-white font-monospace";
+      }
+      if (summaryText) {
+        summaryText.innerHTML = `<span class="text-danger fw-bold">⚠️ Motor Físico no disponible o con error interno</span>`;
+      }
+      if (outputBox) {
+        outputBox.innerText = `[FALLO TÉCNICO EN MOTOR FÍSICO]\n${err.message}`;
+      }
+    });
+  }
+
+  function calcCarburo() {
+    const co = document.getElementById('carburo_co')?.value || '10';
+    const eVal = { '6': '630 GPa', '8': '610 GPa', '10': '590 GPa', '12': '560 GPa' }[co];
+    const kcVal = { '6': '3100 N/mm²', '8': '2950 N/mm²', '10': '2800 N/mm²', '12': '2600 N/mm²' }[co];
+    const hvVal = { '6': '1780 HV30', '8': '1700 HV30', '10': '1620 HV30', '12': '1520 HV30' }[co];
+    
+    if (document.getElementById('res-carb-e')) document.getElementById('res-carb-e').textContent = eVal;
+    if (document.getElementById('res-carb-kc')) document.getElementById('res-carb-kc').textContent = kcVal;
+    if (document.getElementById('res-carb-hv')) document.getElementById('res-carb-hv').textContent = hvVal;
+  }
+
+  function calcDeflexion() {
+    const D_ext = parseFloat(document.getElementById('def_D_ext')?.value) || 12.0;
+    const d_nuc = parseFloat(document.getElementById('def_d')?.value) || 7.8;
+    const l_vol = parseFloat(document.getElementById('def_l')?.value) || 35.0;
+    const z_canales = parseInt(document.getElementById('def_z')?.value) || 4;
+    const helice_deg = parseFloat(document.getElementById('def_helice')?.value) || 35.0;
+    const fRad = parseFloat(document.getElementById('def_frad')?.value) || 150.0;
+    const co = document.getElementById('carburo_co')?.value || '10';
+
+    const eCarburoMap = { '6': 630000, '8': 610000, '10': 590000, '12': 560000 };
+    const eCarburo = eCarburoMap[co] || 590000;
+    const i_teorico = (Math.PI * Math.pow(d_nuc, 4)) / 64.0;
+    const factorRanuras = 1.0 - (0.05 * z_canales) - (0.0015 * helice_deg);
+    const i_efectivo = i_teorico * Math.max(factorRanuras, 0.30);
+    const delta = (fRad * Math.pow(l_vol, 3)) / (3.0 * eCarburo * i_efectivo);
+    const pctNucleo = (d_nuc / D_ext) * 100.0;
+
+    const resPct = document.getElementById('res-pct-nucleo-val');
+    const resIz = document.getElementById('res-iz-efectivo-val');
+    const resVal = document.getElementById('res-def-val');
+    const resSt = document.getElementById('res-def-status');
+
+    if (resPct) resPct.textContent = `${pctNucleo.toFixed(1)} %`;
+    if (resIz) resIz.textContent = `${i_efectivo.toFixed(2)} mm⁴`;
+    if (resVal) resVal.textContent = `${delta.toFixed(4)} mm`;
+
+    if (resSt) {
+      if (delta > 0.005) {
+        resSt.textContent = "⚠️ ALERTA: Deflexión crítica (> 0.005 mm). Alto riesgo de rotura o error de perfil. Usar soporte/luneta.";
+        resSt.className = "small mt-2 fw-bold text-danger";
+      } else {
+        resSt.textContent = "✅ Proceso Estable (Sin necesidad de Luneta)";
+        resSt.className = "small mt-2 fw-bold text-success";
+      }
+    }
+  }
+
+  function calcDin6535() {
+    const d = document.getElementById('din_diam')?.value || '10';
+    const forceMap = { '6': '> 45 Nm', '8': '> 85 Nm', '10': '> 130 Nm', '12': '> 210 Nm', '16': '> 380 Nm' };
+    if (document.getElementById('res-din-force')) document.getElementById('res-din-force').textContent = forceMap[d] || '> 100 Nm';
+  }
+
+  const matrizTroubleshooting = {
+    chipping: {
+      causa: "Fuerza específica de corte o impacto mecánico excesivo al entrar al canal, o sustrato frágil.",
+      acciones: [
+        "Reducir la velocidad de avance entre un 15% y 20%.",
+        "Dividir la profundidad agregando 1 pasada adicional de desbaste.",
+        "Aumentar el contenido de Cobalto del carburo a 12% Co (Sustrato Ultra Tenaz)."
+      ],
+      ajustes: { factor_vf: 0.82, pasadas_extra: 1, co: '12' }
+    },
+    clogging: {
+      causa: "Volumen de viruta remolida excesivo combinado con canal estrecho.",
+      acciones: [
+        "Aumentar la velocidad de husillo RPM un 10% - 15% para acelerar la evacuación.",
+        "Reducir la profundidad por pasada o cambiar a Aglomerante Híbrido con grano más abierto."
+      ],
+      ajustes: { factor_rpm: 1.12, bond: 'hibrido' }
+    },
+    thermal: {
+      causa: "Frotamiento elástico por muela embotada (Glazing) que genera picos térmicos.",
+      acciones: [
+        "Reducir la velocidad RPM de husillo un 15% para bajar la temperatura.",
+        "Ejecutar un ciclo de reavivado (Dressing) en la muela."
+      ],
+      ajustes: { factor_rpm: 0.85, bond: 'hibrido' }
+    },
+    chatter: {
+      causa: "Deflexión elástica o resonancia armónica entre los dientes y la muela.",
+      acciones: [
+        "Reducir la fuerza radial disminuyendo el avance un 15%.",
+        "Aumentar las pasadas de desbaste para aligerar la carga lineal."
+      ],
+      ajustes: { factor_vf: 0.85, pasadas_extra: 1, bond: 'resina' }
+    },
+    wheel_wear: {
+      causa: "Concentración baja de diamante o resistencia del aglomerante insuficiente.",
+      acciones: [
+        "Cambiar aglomerante a Híbrido (HB) o Metálico de mayor retención.",
+        "Aumentar las RPM un 10% para aligerar la carga por grano."
+      ],
+      ajustes: { factor_rpm: 1.10, bond: 'hibrido' }
+    }
+  };
+
+  let ultimoAjusteTroubleshoot = null;
+
+  function analizarFallaProceso() {
+    const sintomaSelect = document.getElementById('tb_sintoma');
+    const panel = document.getElementById('tb_panel_diagnostico');
+    const causaTexto = document.getElementById('tb_causa_texto');
+    const accionesLista = document.getElementById('tb_acciones_lista');
+    
+    if (!sintomaSelect) return;
+    const sintoma = sintomaSelect.value;
+
+    if (!sintoma || sintoma === 'ninguno') {
+      if (panel) panel.classList.add('d-none');
+      return;
+    }
+
+    const diag = matrizTroubleshooting[sintoma];
+    if (!diag) return;
+
+    if (causaTexto) causaTexto.innerHTML = diag.causa;
+    if (accionesLista) {
+      accionesLista.innerHTML = diag.acciones.map(a => `<li class="mb-1">🔹 ${a}</li>`).join('');
+    }
+
+    ultimoAjusteTroubleshoot = diag.ajustes;
+    if (panel) {
+      panel.classList.remove('d-none');
+      panel.style.display = 'block';
+    }
+  }
+
+  function aplicarSolucionTroubleshooting() {
+    if (!ultimoAjusteTroubleshoot) return;
+    const adj = ultimoAjusteTroubleshoot;
+
+    if (adj.factor_vf) {
+      const elVf = document.getElementById('avance');
+      if (elVf) elVf.value = Math.round(parseFloat(elVf.value) * adj.factor_vf);
+    }
+    if (adj.factor_rpm) {
+      const elRpm = document.getElementById('rpm');
+      if (elRpm) elRpm.value = Math.round(parseFloat(elRpm.value) * adj.factor_rpm);
+    }
+    if (adj.pasadas_extra) {
+      const elPasadas = document.getElementById('pasadas_desbaste');
+      if (elPasadas) elPasadas.value = parseInt(elPasadas.value) + adj.pasadas_extra;
+    }
+    if (adj.bond) {
+      const elBond = document.getElementById('aglomerante');
+      if (elBond) elBond.value = adj.bond;
+    }
+
+    const modalEl = document.getElementById('modalTroubleshooting');
+    if (modalEl) {
+      const modalObj = bootstrap.Modal.getInstance(modalEl);
+      if (modalObj) modalObj.hide();
+    }
+
+    if (typeof ejecutarCalculo === 'function') {
+      ejecutarCalculo();
+    }
+  }
+
+  // Utilitario Debounce para evitar saturación de peticiones por tecleo
+function debounce(func, delay = 400) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+// Handler debounced para captura de contexto y evaluador del Dock
+const debouncedAutoSync = debounce(() => {
+  capturarYGuardarContextoLocal();
+  triggerAutoAI();
+}, 450);
+
+document.addEventListener('input', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+    debouncedAutoSync();
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (e.target.tagName === 'SELECT' || e.target.type === 'radio') {
+    capturarYGuardarContextoLocal();
+    triggerAutoAI();
+  }
+});
+
+  document.addEventListener('DOMContentLoaded', function() {
+    calcCarburo();
+    calcDeflexion();
+    calcDin6535();
+    capturarYGuardarContextoLocal();
+    triggerAutoAI();
+  });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

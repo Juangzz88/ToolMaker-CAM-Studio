@@ -7,7 +7,7 @@
 <style>
 .panel-box {
     background-color: #111a36 !important;
-    border: 1px solid #2a3a5e !important;
+    border: 1px solid #334155 !important;
 }
 
 .viewport-hud-wrapper {
@@ -91,32 +91,41 @@
 }
 </style>
 
+<!-- ENCABEZADO HOMOLOGADO MÓDULO 2 (UBICADO FUERA Y ARRIBA DE LAS COLUMNAS) -->
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(0, 242, 254, 0.15)" stroke="#00f2fe" stroke-width="2"/>
+                <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#00f2fe" stroke-width="1.5"/>
+                <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#00f2fe" stroke-width="1.5"/>
+                <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#00f2fe" stroke-width="1.5"/>
+                <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
+            </svg>
+            <span>Generador de Geometría de Herramienta</span>
+        </h5>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
+            🖨️ Exportar Hoja CNC
+        </button>
+
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+            
+            <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
     <!-- COLUMNA IZQUIERDA -->
     <div class="col-lg-7 col-md-12">
         <div class="card card-custom p-4 h-100">
             
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <rect x="8" y="2" width="8" height="20" rx="1" fill="rgba(0, 242, 254, 0.15)" stroke="#00f2fe" stroke-width="2"/>
-                        <path d="M8 6 C 11 8, 13 8, 16 6" stroke="#00f2fe" stroke-width="1.5"/>
-                        <path d="M8 11 C 11 13, 13 13, 16 11" stroke="#00f2fe" stroke-width="1.5"/>
-                        <path d="M8 16 C 11 18, 13 18, 16 16" stroke="#00f2fe" stroke-width="1.5"/>
-                        <path d="M8 2 L12 4 L16 2" stroke="#38bdf8" stroke-width="1.5"/>
-                    </svg>
-                    <span>Generador de Geometría de Herramienta</span>
-                </h5>
-                
-                <div class="btn-group" role="group">
-                    <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
-                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
-                    
-                    <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
-                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
-                </div>
-            </div>
-
             <!-- SELECTOR PRINCIPAL -->
             <div class="row g-2 mb-3">
                 <div class="col-6">
@@ -289,7 +298,7 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN CONICIDAD NÚCLEO (CORE TAPER) - HOMOLOGADO CON MISMO PANEL-BOX -->
+                <!-- SECCIÓN CONICIDAD NÚCLEO (CORE TAPER) -->
                 <div class="p-3 mb-3 rounded border border-secondary panel-box" id="sec-core-taper">
                     <h6 class="text-info text-center fw-bold mb-2 d-flex align-items-center justify-content-center">
                         Conicidad Núcleo (Core Taper)
@@ -380,10 +389,10 @@
             </div>
 
             <div class="p-3 rounded border border-secondary text-center panel-box">
-                <label class="d-block mb-1 fw-bold">ÍNDICE DE RIGIDEZ ESTRUCTURAL (Iz):</label>
-                <span id="res-rigidez" class="fs-4 fw-bold">14.8%</span>
-                <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Rigidez Estándar</div>
-            </div>
+    <label class="d-block mb-1 fw-bold text-muted small">ÍNDICE DE INERCIA RELATIVO (Iz Equiv.):</label>
+    <span id="res-rigidez" class="fs-4 fw-bold">14.8%</span>
+    <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Sección Circular Equivalente</div>
+</div>
         </div>
     </div>
 </div>

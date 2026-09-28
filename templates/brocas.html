@@ -3,7 +3,6 @@
 
 {% block extra_head %}
 <style>
-/* ESTILOS SLATE CYAN PARA POPOVERS DE BOOTSTRAP */
 .popover {
   background-color: #22262c !important;
   border: 1px solid #334155 !important;
@@ -49,7 +48,7 @@
 
 .panel-box {
     background-color: #111a36 !important;
-    border: 1px solid #2a3a5e !important;
+    border: 1px solid #334155 !important;
 }
 
 .viewport-hud-wrapper {
@@ -137,31 +136,40 @@
 {% endblock %}
 
 {% block content %}
+<!-- ENCABEZADO HOMOLOGADO MÓDULO 3 -->
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+            <svg viewBox="0 0 24 24" fill="none" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 8 L12 2 L17 8 Z" fill="rgba(0, 242, 254, 0.2)" stroke="#00f2fe" stroke-width="1.8" stroke-linejoin="round"/>
+              <line x1="12" y1="2" x2="12" y2="8" stroke="#38bdf8" stroke-width="1.5"/>
+              <rect x="7" y="8" width="10" height="14" rx="1" fill="rgba(0, 242, 254, 0.08)" stroke="#00f2fe" stroke-width="1.8"/>
+              <path d="M7 11 L17 15" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M7 16 L17 20" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>Broca de Carburo Sólido (High Performance)</span>
+        </h5>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
+            🖨️ Exportar Hoja CNC
+        </button>
+
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+            
+            <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+        </div>
+    </div>
+</div>
+
 <div class="row g-3">
     <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE BROCA -->
     <div class="col-lg-7 col-md-12">
         <div class="card card-custom p-4 h-100">
-            
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 8 L12 2 L17 8 Z" fill="rgba(0, 242, 254, 0.2)" stroke="#00f2fe" stroke-width="1.8" stroke-linejoin="round"/>
-                      <line x1="12" y1="2" x2="12" y2="8" stroke="#38bdf8" stroke-width="1.5"/>
-                      <rect x="7" y="8" width="10" height="14" rx="1" fill="rgba(0, 242, 254, 0.08)" stroke="#00f2fe" stroke-width="1.8"/>
-                      <path d="M7 11 L17 15" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
-                      <path d="M7 16 L17 20" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                    <span>Broca de Carburo Sólido (High Performance)</span>
-                </h5>
-                
-                <div class="btn-group" role="group">
-                    <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked>
-                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
-                    
-                    <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in">
-                    <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
-                </div>
-            </div>
 
             <!-- PRESETS DE MATERIAL Y APLICACIÓN -->
             <div class="row g-2 mb-3">
@@ -525,7 +533,6 @@ function actualizarBadgeISOBroca() {
     }
 }
 
-// CONVERSIÓN DE UNIDADES MM <-> INCH CON PRECISIÓN DEDICADA
 document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
     radio.addEventListener('change', function() {
         const newUnit = this.value;
@@ -819,14 +826,14 @@ function ejecutarCalculoBroca() {
 
     const estFz = document.getElementById('est-fz');
     if (estFz) {
-        if (fz > 4000) {
-            estFz.textContent = "⚠️ Empuje Elevado (Verificar rigidez de bancada)";
-            estFz.className = "small fw-bold mt-1 text-danger";
-        } else {
-            estFz.textContent = "✅ Empuje Dentro de Límites Seguros (Split Point C)";
-            estFz.className = "small fw-bold mt-1 status-ok";
-        }
+    if (fz > 4000) {
+        estFz.textContent = "⚠️ Empuje Elevado (Verificar carga de estabilidad axial K=0.7)";
+        estFz.className = "small fw-bold mt-1 text-danger";
+    } else {
+        estFz.textContent = "✅ Empuje Dentro de Envolvente Segura (Split Point C)";
+        estFz.className = "small fw-bold mt-1 status-ok";
     }
+}
 
     const dwPunta = d1 * (pctDw / 100.0);
     const backTaperAcum = (lc_mm / 100.0) * backTaper_mm * (currentUnit === 'in' ? (1.0 / 25.4) : 1.0);
@@ -850,7 +857,6 @@ function ejecutarCalculoBroca() {
     dibujarBroca2D();
 }
 
-// NAVEGACIÓN CON TECLA ENTER (.enter-next)
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const activeElement = document.activeElement;

@@ -208,9 +208,7 @@
       line-height: 1.5 !important;
     }
 
-    /* ==========================================
-       BARRA DOCK INFERIOR (APERTURA EXCLUSIVA POR CLIC)
-       ========================================== */
+    /* BARRA DOCK INFERIOR */
     .ia-dock-container {
       position: fixed;
       bottom: 0;
@@ -218,7 +216,7 @@
       transform: translateX(-50%);
       width: 92%;
       max-width: 1050px;
-      height: 38px; /* ALTO FIJO EN ESTADO COLAPSADO */
+      height: 38px;
       background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -232,7 +230,6 @@
       overflow: hidden;
     }
 
-    /* ENCABEZADO VISIBLE */
     .ia-dock-header {
       padding: 8px 16px;
       display: flex;
@@ -247,7 +244,6 @@
       background-color: rgba(56, 189, 248, 0.05);
     }
 
-    /* CUERPO DEL DOCK (DESACTIVADO EN COLAPSO) */
     .ia-dock-body {
       display: none;
       padding: 0 16px 16px 16px;
@@ -255,9 +251,8 @@
       transition: opacity 0.25s ease;
     }
 
-    /* ESTADO EXPANDIDO (SÓLO MEDIANTE CLIC) */
     .ia-dock-container.expanded {
-      height: 260px; /* EXPANDE EL CONTENEDOR */
+      height: 260px;
       border-color: #38bdf8;
     }
 
@@ -686,139 +681,13 @@
   <!-- SCRIPT DE BOOTSTRAP BUNDLE -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- LÓGICA GENERAL LOCAL -->
+  <!-- LÓGICA JAVASCRIPT GLOBAL EMBEBIDA -->
   <script>
-  let autoAiTimer = null;
-
-  function toggleIADock() {
-    const dock = document.getElementById('iaDockWidget');
-    const btnText = document.getElementById('dock-toggle-btn');
-    if (dock) {
-      dock.classList.toggle('expanded');
-      if (btnText) {
-        btnText.textContent = dock.classList.contains('expanded') ? '▼ Colapsar' : '▲ Ampliar';
-      }
-    }
-  }
-
-  function capturarYGuardarContextoLocal() {
-    try {
-      const rutaActual = window.location.pathname;
-      let memoriaGlobal = JSON.parse(localStorage.getItem('TM_GLOBAL_TOOL_CONTEXT') || '{}');
-
-      const radioUnidad = document.querySelector('input[name="unidad"]:checked');
-      const unidadReal = radioUnidad ? radioUnidad.value : (window.currentUnit || 'mm');
-
-      const inputs = document.querySelectorAll('input, select');
-      let datosModulo = { unidad: unidadReal };
-
-      inputs.forEach(i => {
-        if ((i.id || i.name) && i.value !== "") {
-          if (i.name === 'unidad' || i.id === 'unit_mm' || i.id === 'unit_in') return;
-          datosModulo[i.id || i.name] = i.value;
-        }
-      });
-
-      const spansResultados = ['res-fz', 'res-mc', 'res-def-val', 'res-iz-efectivo-val'];
-      spansResultados.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          const valNum = parseFloat(el.textContent.replace(/[^0-9.]/g, ''));
-          if (!isNaN(valNum)) datosModulo[id.replace(/-/g, '_')] = valNum;
-        }
-      });
-
-      if (rutaActual.includes('geometria-herramienta')) {
-        memoriaGlobal.geometria = Object.assign({}, memoriaGlobal.geometria || {}, datosModulo);
-      } else if (rutaActual.includes('recubrimientos')) {
-        memoriaGlobal.recubrimiento = Object.assign({}, memoriaGlobal.recubrimiento || {}, datosModulo);
-      } else if (rutaActual.includes('calculadora-muelas') || rutaActual === '/') {
-        memoriaGlobal.operacion = Object.assign({}, memoriaGlobal.operacion || {}, datosModulo);
-      } else if (rutaActual.includes('geometria-brocas')) {
-        memoriaGlobal.broca = Object.assign({}, memoriaGlobal.broca || {}, datosModulo);
-      } else if (rutaActual.includes('catalogo-abrasivos')) {
-        memoriaGlobal.abrasivo = Object.assign({}, memoriaGlobal.abrasivo || {}, datosModulo);
-      }
-
-      localStorage.setItem('TM_GLOBAL_TOOL_CONTEXT', JSON.stringify(memoriaGlobal));
-    } catch (err) {
-      console.error("[TM-Local] Error capturando contexto:", err);
-    }
-  }
-
-  function triggerAutoAI() {
-    clearTimeout(autoAiTimer);
-    const statusBadge = document.getElementById('dock-status-badge');
-    if (statusBadge) {
-      statusBadge.innerText = "CALCULANDO...";
-      statusBadge.className = "badge bg-warning text-dark font-monospace";
-    }
-
-    autoAiTimer = setTimeout(() => {
-      ejecutarSincronizacionCruzadaIA();
-    }, 600);
-  }
-
-  function ejecutarSincronizacionCruzadaIA() {
-    const statusBadge = document.getElementById('dock-status-badge');
-    const summaryText = document.getElementById('dock-summary');
-    const outputBox = document.getElementById('aiAutoOutput');
-
-    let contextoGlobal = {};
-    try {
-      contextoGlobal = JSON.parse(localStorage.getItem('TM_GLOBAL_TOOL_CONTEXT') || '{}');
-    } catch(e) {
-      contextoGlobal = {};
-    }
-
-    const moduloActual = window.location.pathname;
-
-    fetch('/api/auto-evaluar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        modulo: moduloActual,
-        contexto_cruzado: contextoGlobal
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      const esAlerta = data.alerta_critica;
-      if (statusBadge) {
-        statusBadge.innerText = esAlerta ? "ALERTA TÉCNICA" : "ONLINE (LOCAL)";
-        statusBadge.className = esAlerta 
-          ? "badge bg-danger text-white font-monospace" 
-          : "badge bg-success font-monospace";
-      }
-
-      const diagTexto = data.diagnostico || 'Diagnóstico procesado correctamente.';
-      
-      if (summaryText) {
-        summaryText.innerHTML = esAlerta
-          ? `<span class="text-danger fw-bold">⚠️ Desviación crítica detectada en parámetros de proceso</span>`
-          : `<span class="status-ok fw-bold">✅ Parámetros Nominales Seguros</span> | ${diagTexto.substring(0, 95)}...`;
-      }
-
-      if (outputBox) {
-        const providerTag = data.provider ? `[${data.provider.toUpperCase()}]\n` : '';
-        outputBox.innerText = providerTag + diagTexto;
-      }
-    })
-    .catch(err => {
-      console.error("[TM-Local Error]:", err);
-      if (statusBadge) {
-        statusBadge.innerText = "ONLINE (MOTOR FÍSICO)";
-        statusBadge.className = "badge bg-info text-dark font-monospace";
-      }
-      if (summaryText) {
-        summaryText.textContent = "Sincronizado | Telemetría CNC procesada por Motor Físico Local.";
-      }
-      if (outputBox) {
-        outputBox.innerText = "[Motor Físico Local]\nSincronizando telemetría CNC... Modifique un valor en pantalla para reevaluar.";
-      }
-    });
-  }
-
+  </script>
+  <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/evaluator.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/troubleshooting.js') }}"></script>
+  <script>
   function calcCarburo() {
     const co = document.getElementById('carburo_co')?.value || '10';
     const eVal = { '6': '630 GPa', '8': '610 GPa', '10': '590 GPa', '12': '560 GPa' }[co];
@@ -920,9 +789,14 @@
   let ultimoAjusteTroubleshoot = null;
 
   function analizarFallaProceso() {
-    const sintoma = document.getElementById('tb_sintoma')?.value;
+    const sintomaSelect = document.getElementById('tb_sintoma');
     const panel = document.getElementById('tb_panel_diagnostico');
+    const causaTexto = document.getElementById('tb_causa_texto');
+    const accionesLista = document.getElementById('tb_acciones_lista');
     
+    if (!sintomaSelect) return;
+    const sintoma = sintomaSelect.value;
+
     if (!sintoma || sintoma === 'ninguno') {
       if (panel) panel.classList.add('d-none');
       return;
@@ -931,11 +805,16 @@
     const diag = matrizTroubleshooting[sintoma];
     if (!diag) return;
 
-    if (document.getElementById('tb_causa_texto')) document.getElementById('tb_causa_texto').innerHTML = diag.causa;
-    if (document.getElementById('tb_acciones_lista')) document.getElementById('tb_acciones_lista').innerHTML = diag.acciones.map(a => `<li class="mb-1">🔹 ${a}</li>`).join('');
+    if (causaTexto) causaTexto.innerHTML = diag.causa;
+    if (accionesLista) {
+      accionesLista.innerHTML = diag.acciones.map(a => `<li class="mb-1">🔹 ${a}</li>`).join('');
+    }
 
     ultimoAjusteTroubleshoot = diag.ajustes;
-    if (panel) panel.classList.remove('d-none');
+    if (panel) {
+      panel.classList.remove('d-none');
+      panel.style.display = 'block';
+    }
   }
 
   function aplicarSolucionTroubleshooting() {
@@ -959,6 +838,11 @@
       if (elBond) elBond.value = adj.bond;
     }
 
+    if (adj.co) {
+      const elCo = document.getElementById('carburo_co');
+      if (elCo) elCo.value = adj.co;
+    }
+
     const modalEl = document.getElementById('modalTroubleshooting');
     if (modalEl) {
       const modalObj = bootstrap.Modal.getInstance(modalEl);
@@ -970,19 +854,33 @@
     }
   }
 
-  document.addEventListener('input', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
-      capturarYGuardarContextoLocal();
-      triggerAutoAI();
-    }
-  });
+  // Utilitario Debounce para evitar saturación de peticiones por tecleo
+function debounce(func, delay = 400) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
-  document.addEventListener('change', function(e) {
-    if (e.target.tagName === 'SELECT' || e.target.type === 'radio') {
-      capturarYGuardarContextoLocal();
-      triggerAutoAI();
-    }
-  });
+// Handler debounced para captura de contexto y evaluador del Dock
+const debouncedAutoSync = debounce(() => {
+  capturarYGuardarContextoLocal();
+  triggerAutoAI();
+}, 450);
+
+document.addEventListener('input', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+    debouncedAutoSync();
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (e.target.tagName === 'SELECT' || e.target.type === 'radio') {
+    capturarYGuardarContextoLocal();
+    triggerAutoAI();
+  }
+});
 
   document.addEventListener('DOMContentLoaded', function() {
     calcCarburo();

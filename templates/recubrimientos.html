@@ -348,7 +348,9 @@ function ejecutarAnalisisRecubrimiento() {
     if (elVidaCapa) elVidaCapa.innerHTML = `Fase 1 (Capa Intacta): <span class="text-light font-monospace">${data.vida.vida_capa_min.toFixed(1)} min</span>`;
 
     const elVidaTotal = document.getElementById('res-vida-total');
-    if (elVidaTotal) elVidaTotal.innerText = data.vida.vida_hasta_vb_critico_min.toFixed(1) + " min";
+    if (elVidaTotal && data.vida.criterio_vb_um) {
+    elVidaTotal.innerHTML = `${data.vida.vida_hasta_vb_critico_min.toFixed(1)} min <span class="d-block fs-6 text-muted fw-normal">Criterio Cierre: VB = ${data.vida.criterio_vb_um} µm</span>`;
+}
 
     actualizarPanelRecomendacionesIA(payload, data);
   })

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block title %}Módulo 1: Operaciones & Muelas CNC{% endblock %}
 
 {% block content %}
@@ -368,9 +368,9 @@
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
-                <label class="d-block mb-1 fw-bold">RUGOSIDAD ESTIMADA (Ra):</label>
-                <span id="res-ra" class="fs-4 fw-bold">0.00</span> <span class="small text-light">µm</span>
-                <div id="est-ra" class="small text-light mt-1 text-center">Acabado según grano.</div>
+                <label class="d-block mb-1 fw-bold text-muted small">RUGOSIDAD OBJETIVO DE REFERENCIA (Ra):</label>
+                <span id="res-ra" class="fs-4 fw-bold text-info">0.25</span> <span class="small text-light">µm</span>
+                <div id="est-ra" class="small text-light mt-1 text-center">Referencia teórica FEPA D126</div>
             </div>
 
             <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
@@ -388,7 +388,7 @@
 
 <script>
 let currentUnit = 'mm';
-let pasadasChart = null;
+let pasadasChartInstance = null;
 
 let scaleM1 = 1.0;
 let panXM1 = 0;
@@ -538,6 +538,11 @@ function cambiarUnidadM1(newUnit) {
 }
 
 function actualizarVisibilidadControlesRueda() {
+    const opActual = getValStr('operacion', 'fluting');
+    const esRelief = (opActual === 'relief');
+    document.getElementById('group-ancho-w')?.classList.toggle('d-none', !esRelief);
+    document.getElementById('group-ancho')?.classList.toggle('d-none', esRelief);
+    document.getElementById('group-pasadas')?.classList.toggle('d-none', opActual !== 'fluting');
     const tipoRueda = getValStr('tipo_rueda', '1V1');
     const grpAnguloV = document.getElementById('group-angulo-v');
     if (grpAnguloV) {
@@ -623,6 +628,7 @@ function getValStr(id, defaultVal = '') {
     return document.getElementById(id)?.value || defaultVal;
 }
 
+// RENDERIZADOR ÚNICO OPTIMIZADO PARA PANTALLAS HiDPI / RETINA
 function renderWheelCanvas() {
     const canvas = document.getElementById('wheelCanvas');
     if (!canvas) return;
@@ -633,8 +639,9 @@ function renderWheelCanvas() {
 // MOTOR GRÁFICO 2.5D FEPA HOMOLOGADO CON MÓDULO 4
 function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
     const canvas = ctx.canvas;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const enDom = canvas.isConnected;
+    const rect = enDom ? canvas.getBoundingClientRect() : { width: width, height: height };
+    const dpr = enDom ? (window.devicePixelRatio || 1) : 1;
     
     canvas.width = Math.round(rect.width * dpr);
     canvas.height = Math.round(rect.height * dpr);
@@ -837,43 +844,60 @@ function drawGauge(canvasId, value, min, max, color) {
     }
 }
 
-function actualizarGraficoPasadas(potenciaKw, pasadas, cargaPct) {
-    const ctx = document.getElementById('chartPasadasCanvas');
-    if (!ctx) return;
+function actualizarGraficoPasadas(kwNominal, pasadas, pctSpindle) {
+  const canvas = document.getElementById('chartPasadasCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
 
-    const labels = [];
-    const dataKw = [];
-    const pasadasTotal = Math.max(1, parseInt(pasadas) || 1);
-    const kw = parseFloat(potenciaKw) || 0;
+  const labels = [];
+  const dataKw = [];
+  const kwPorPasada = kwNominal;
 
-    for (let i = 1; i <= pasadasTotal; i++) {
-        labels.push(`Pasada ${i}`);
-        const factorPasada = (i === pasadasTotal && pasadasTotal > 1) ? 0.65 : 1.0;
-        dataKw.push((kw * factorPasada).toFixed(2));
-    }
+  for (let i = 1; i <= pasadas; i++) {
+    labels.push(`Pasada ${i}`);
+    dataKw.push(kwPorPasada);
+  }
 
-    if (pasadasChart) pasadasChart.destroy();
-
-    pasadasChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Potencia Husillo (kW)',
-                data: dataKw,
-                backgroundColor: cargaPct > 95 ? '#ff1744' : (cargaPct > 75 ? '#ffea00' : '#00e676'),
-                borderRadius: 4, barThickness: 24
-            }]
+  if (pasadasChartInstance) {
+    pasadasChartInstance.data.labels = labels;
+    pasadasChartInstance.data.datasets[0].data = dataKw;
+    pasadasChartInstance.data.datasets[0].backgroundColor = pctSpindle > 95 ? 'rgba(255, 23, 68, 0.6)' : 'rgba(56, 189, 248, 0.5)';
+    pasadasChartInstance.data.datasets[0].borderColor = pctSpindle > 95 ? '#ff1744' : '#38bdf8';
+    pasadasChartInstance.update('none');
+  } else {
+    pasadasChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Potencia Estimada (kW)',
+          data: dataKw,
+          backgroundColor: 'rgba(56, 189, 248, 0.5)',
+          borderColor: '#38bdf8',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
         },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: {
-                y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#ffffff' }, beginAtZero: true },
-                x: { grid: { display: false }, ticks: { color: '#ffffff' } }
-            },
-            plugins: { legend: { display: false } }
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+            ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+          }
         }
+      }
     });
+  }
 }
 
 function calcularInfeedVisual() {
@@ -888,6 +912,12 @@ async function ejecutarCalculo() {
     const op = getValStr('operacion', 'fluting');
     const pasadasVal = (op === 'fluting') ? getValNum('pasadas_desbaste', 1) : 1;
 
+    const elProf = document.getElementById('profundidad');
+    const elDiam = document.getElementById('diametro_rueda');
+    const elAncho = document.getElementById('ancho_rueda');
+    const elAvance = document.getElementById('avance');
+    const elRpm = document.getElementById('rpm');
+
     const data = {
         operacion: op,
         unidad: currentUnit,
@@ -896,59 +926,110 @@ async function ejecutarCalculo() {
         tipo_rueda: getValStr('tipo_rueda', '1V1'),
         aglomerante: getValStr('aglomerante', 'hibrido'),
         grano_fepa: getValStr('grano_fepa', 'D126'),
-        diametro_rueda: getValNum('diametro_rueda', 100),
-        ancho_rueda: getValNum('ancho_rueda', 10),
+        diametro_rueda: elDiam ? parseFloat(elDiam.value) : 100,
+        ancho_rueda: elAncho ? parseFloat(elAncho.value) : 10,
         ancho_labio_w: getValNum('ancho_labio_w', 6),
         longitud_corte: getValNum('longitud_corte', 30),
-        profundidad: getValNum('profundidad', 1.5),
+        profundidad: elProf ? parseFloat(elProf.value) : 1.5,
         pasadas_desbaste: pasadasVal,
         num_canales: getValNum('num_canales', 4),
-        avance: getValNum('avance', 120),
-        rpm: getValNum('rpm', 4800)
+        avance: elAvance ? parseFloat(elAvance.value) : 120,
+        rpm: elRpm ? parseFloat(elRpm.value) : 4800
     };
 
     try {
+        const criticos = ['diametro_rueda', 'ancho_rueda', 'profundidad', 'avance', 'rpm'];
+        if (criticos.some(k => !Number.isFinite(data[k]))) return;
+
         const res = await fetch('/api/calcular-rectificado', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
+        
         const json = await res.json();
-        if (json.success) {
-            if (document.getElementById('res-vs')) document.getElementById('res-vs').textContent = json.vs;
-            if (document.getElementById('est-vs')) document.getElementById('est-vs').textContent = "Estado: " + json.estado_vs;
-            if (document.getElementById('res-q')) document.getElementById('res-q').textContent = json.q_prime;
-            if (document.getElementById('est-q')) document.getElementById('est-q').textContent = "Estado: " + json.estado_q;
-            if (document.getElementById('res-ra')) document.getElementById('res-ra').textContent = json.ra_micras;
-            if (document.getElementById('est-ra')) document.getElementById('est-ra').textContent = "Acabado: " + json.estado_ra;
-            if (document.getElementById('res-ft-esp')) document.getElementById('res-ft-esp').textContent = json.ft_especifica;
-            if (document.getElementById('res-tiempo')) document.getElementById('res-tiempo').textContent = json.tiempo_str;
 
-            const pct = json.carga_spindle_pct !== undefined ? json.carga_spindle_pct : 0;
-            const kw = json.potencia_kw !== undefined ? json.potencia_kw : 0;
-            const estado = json.estado_spindle || 'Carga Segura';
+        if (!json.success) {
+            const msgs = json.detalles ? json.detalles.join('<br>') : json.error;
 
-            if (document.getElementById('res-kw')) document.getElementById('res-kw').textContent = kw + " kW";
-            const valSpindleEl = document.getElementById('gauge-spindle-val');
             const estSpindleEl = document.getElementById('est-spindle');
-            
-            if (valSpindleEl) valSpindleEl.textContent = pct + "%";
-            if (estSpindleEl) estSpindleEl.textContent = estado;
+            const valSpindleEl = document.getElementById('gauge-spindle-val');
+            const estQEl = document.getElementById('est-q');
+            const resQEl = document.getElementById('res-q');
 
-            let colorHex = '#00e676';
-            if (pct > 75 && pct <= 95) colorHex = '#ffea00';
-            else if (pct > 95) colorHex = '#ff1744';
+            if (valSpindleEl) {
+                valSpindleEl.textContent = "ALERTA";
+                valSpindleEl.style.color = "#ff1744";
+            }
+            if (estSpindleEl) {
+                estSpindleEl.textContent = "🛑 Límite Físico Excedido";
+                estSpindleEl.style.color = "#ff1744";
+            }
+            if (resQEl) {
+                resQEl.textContent = "ERR";
+                resQEl.style.color = "#ff1744";
+            }
+            if (estQEl) {
+                estQEl.innerHTML = `<span class="text-danger fw-bold">${msgs}</span>`;
+            }
 
-            if (valSpindleEl) valSpindleEl.style.color = colorHex;
-            if (estSpindleEl) estSpindleEl.style.color = colorHex;
-
-            drawGauge('spindleGaugeCanvas', pct, 0, 100, colorHex);
-            drawGauge('vsGaugeCanvas', json.vs, 0, currentUnit === 'in' ? 7000 : 50, '#00f2fe');
-
-            actualizarGraficoPasadas(kw, pasadasVal, pct);
+            drawGauge('spindleGaugeCanvas', 100, 0, 100, '#ff1744');
+            drawGauge('vsGaugeCanvas', 0, 0, currentUnit === 'in' ? 7000 : 50, '#ff1744');
+            return;
         }
+
+        if (document.getElementById('res-vs')) document.getElementById('res-vs').textContent = json.vs;
+        const estVsEl = document.getElementById('est-vs');
+        if (estVsEl) {
+            estVsEl.textContent = "Estado: " + json.estado_vs;
+            const colorVs = /^Alto/.test(json.estado_vs) ? '#ff1744' : (/^Bajo/.test(json.estado_vs) ? '#ffea00' : '#4ade80');
+            estVsEl.style.setProperty('color', colorVs, 'important');
+            const resVsEl = document.getElementById('res-vs');
+            if (resVsEl) resVsEl.style.setProperty('color', colorVs, 'important');
+        }
+        if (document.getElementById('res-q')) {
+            document.getElementById('res-q').textContent = json.q_prime;
+            document.getElementById('res-q').style.color = "#f8fafc";
+        }
+        if (document.getElementById('est-q')) {
+            document.getElementById('est-q').textContent = "Estado: " + json.estado_q;
+            document.getElementById('est-q').style.color = "#94a3b8";
+        }
+        if (document.getElementById('res-ra')) document.getElementById('res-ra').textContent = json.ra_micras;
+        if (document.getElementById('est-ra')) document.getElementById('est-ra').textContent = json.estado_ra;
+        if (document.getElementById('res-ft-esp')) document.getElementById('res-ft-esp').textContent = json.ft_especifica;
+        if (document.getElementById('res-tiempo')) document.getElementById('res-tiempo').textContent = json.tiempo_str;
+
+        const pct = json.carga_spindle_pct !== undefined ? json.carga_spindle_pct : 0;
+        const kw = json.potencia_kw !== undefined ? json.potencia_kw : 0;
+        const estado = json.estado_spindle || 'Carga Segura';
+
+        if (document.getElementById('res-kw')) document.getElementById('res-kw').textContent = kw + " kW";
+        const valSpindleEl = document.getElementById('gauge-spindle-val');
+        const estSpindleEl = document.getElementById('est-spindle');
+        
+        if (valSpindleEl) valSpindleEl.textContent = pct + "%";
+        if (estSpindleEl) estSpindleEl.textContent = estado;
+
+        let colorHex = '#00e676';
+        if (pct > 75 && pct <= 95) colorHex = '#ffea00';
+        else if (pct > 95) colorHex = '#ff1744';
+
+        if (valSpindleEl) valSpindleEl.style.color = colorHex;
+        if (estSpindleEl) estSpindleEl.style.color = colorHex;
+
+        drawGauge('spindleGaugeCanvas', pct, 0, 100, colorHex);
+        drawGauge('vsGaugeCanvas', json.vs, 0, currentUnit === 'in' ? 7000 : 50, '#00f2fe');
+
+        actualizarGraficoPasadas(kw, pasadasVal, pct);
+
+        if (typeof capturarYGuardarContextoLocal === 'function') {
+            capturarYGuardarContextoLocal();
+            triggerAutoAI();
+        }
+
     } catch (err) {
-        console.error("Error en calculo:", err);
+        console.error("Error ejecutando cálculo:", err);
     }
 }
 
@@ -994,6 +1075,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('operacion')?.dispatchEvent(new Event('change'));
     setTimeout(renderWheelCanvas, 100);
 });
+
+(function habilitarPanM1() {
+    const cv = document.getElementById('wheelCanvas');
+    if (!cv) return;
+    let arrastrando = false, ultimoX = 0, ultimoY = 0;
+    cv.addEventListener('pointerdown', e => {
+        arrastrando = true; ultimoX = e.clientX; ultimoY = e.clientY;
+        cv.style.cursor = 'grabbing'; cv.setPointerCapture(e.pointerId);
+    });
+    cv.addEventListener('pointermove', e => {
+        if (!arrastrando) return;
+        panXM1 += e.clientX - ultimoX; panYM1 += e.clientY - ultimoY;
+        ultimoX = e.clientX; ultimoY = e.clientY;
+        renderWheelCanvas();
+    });
+    const soltar = () => { arrastrando = false; cv.style.cursor = 'grab'; };
+    cv.addEventListener('pointerup', soltar);
+    cv.addEventListener('pointercancel', soltar);
+})();
 
 document.getElementById('form-calc')?.addEventListener('submit', function(e) {
     e.preventDefault();

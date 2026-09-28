@@ -1,0 +1,1069 @@
+{% extends 'base.html' %}
+{% block title %}Módulo 1: Operaciones & Muelas CNC{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.gauge-box {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+}
+.gauge-canvas {
+    width: 140px !important;
+    height: 140px !important;
+}
+.gauge-value {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.15rem;
+    font-weight: 800;
+    width: 100%;
+    text-align: center;
+}
+.gauge-label {
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: #94a3b8 !important;
+    width: 100%;
+    text-align: center;
+}
+.panel-box {
+    background-color: #111a36 !important;
+    border: 1px solid #334155 !important;
+}
+
+.viewport-hud-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.viewport-hud-toolbar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(6px);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.hud-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+    background: #1e293b;
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.hud-divider {
+    width: 1px;
+    height: 14px;
+    background-color: #334155;
+    margin: 0 2px;
+}
+</style>
+
+<!-- ENCABEZADO DE MÓDULO UNIFICADO Y ESTANDARIZADO -->
+<div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+        <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M3 7 L8 17 L16 17 L21 7 Z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M8 17 L8 19 L16 19 L16 17" stroke="#38bdf8" stroke-width="1.8" stroke-linejoin="round"/>
+                <rect x="3" y="7" width="18" height="2" fill="#38bdf8"/>
+            </svg>
+            <span>Configuración de Operación CAM</span>
+        </h5>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
+            🖨️ Exportar Hoja CNC
+        </button>
+
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="unidad" id="unit_mm" value="mm" checked onclick="cambiarUnidadM1('mm')">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_mm">MM</label>
+            
+            <input type="radio" class="btn-check" name="unidad" id="unit_in" value="in" onclick="cambiarUnidadM1('in')">
+            <label class="btn btn-outline-info btn-sm fw-bold px-3" for="unit_in">INCH</label>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN DE OPERACIÓN CAM -->
+    <div class="col-lg-7 col-md-12">
+        <div class="card card-custom p-4">
+            
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold">Forma de Rueda (FEPA)</label>
+                    <select id="tipo_rueda" class="form-select border-info fw-bold"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label w-100 text-center fw-bold">Operación de Rectificado</label>
+                    <select id="operacion" class="form-select border-secondary">
+                        <option value="fluting" selected>1. Ranurado / Fluting</option>
+                        <option value="gashing">2. Entrantes / Gashing</option>
+                        <option value="relief">3. Alivios / Relief</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label w-100 text-center fw-bold text-info">Aplicación Herramienta (Material ISO a Mecanizar)</label>
+                <select id="material_iso" class="form-select border-info text-center fw-bold">
+                    <option value="K" selected>ISO K - Carburo Sólido / Fundición (Carburo 10% Co Sub-micrón)</option>
+                    <option value="P">ISO P - Aceros al Carbono / Aleados (Carburo 10% Co Micro-grano)</option>
+                    <option value="M">ISO M - Inoxidables / Duplex (Carburo 12% Co Tenaz)</option>
+                    <option value="N">ISO N - Aluminios / No Ferrosos (Carburo 6% Co Extra Duro / Pulido)</option>
+                    <option value="S">ISO S - Superaleaciones Titanio / Inconel (Carburo 12% Co Ultra Tenaz)</option>
+                    <option value="H">ISO H - Aceros Templados 55+ HRC (Carburo 6% Co Ultra Fine)</option>
+                </select>
+            </div>
+
+            <div class="alert alert-dark border-info d-flex justify-content-between align-items-center p-2 px-3 mb-3" style="background-color: #111a36;">
+                <small class="text-light" id="lbl-status-tool">⚡ Celdas auto-generadas según la aplicación de corte ISO seleccionada.</small>
+                <button type="button" id="btn-reset-preset" class="btn btn-outline-warning btn-sm py-0 px-2 fw-bold text-nowrap ms-2">↺ Recargar Valores ISO</button>
+            </div>
+
+            <form id="form-calc">
+                <div class="p-3 rounded panel-box border border-secondary mb-3">
+                    <h6 class="text-warning fw-bold mb-2 small text-center">Sustrato de Carburo de Tungsteno Recomendado:</h6>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Cobalto (%Co)</label>
+                            <select id="carburo_co" class="form-select form-select-sm text-warning fw-bold">
+                                <option value="6">6% Co (Extra Duro)</option>
+                                <option value="8">8% Co (Balanceado)</option>
+                                <option value="10" selected>10% Co (Estándar)</option>
+                                <option value="12">12% Co (Ultra Tenaz)</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Tamaño Grano WC</label>
+                            <input type="text" id="carburo_grano_wc" class="form-control form-control-sm text-light" value="Sub-micrón (0.5 µm)" readonly>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold">Dureza Estimada</label>
+                            <input type="text" id="carburo_dureza" class="form-control form-control-sm text-light" value="1620 HV30" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Aglomerante Rueda</label>
+                        <select id="aglomerante" class="form-select">
+                            <option value="hibrido" selected>Híbrido (HB) - Alto Rendimiento</option>
+                            <option value="resina">Resina (B) - Buen Acabado</option>
+                            <option value="vitrificado">Vitrificado (V) - Poroso</option>
+                            <option value="metalico">Metálico (M) - Larga Vida</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Abrasivo & Grano FEPA</label>
+                        <select id="grano_fepa" class="form-select">
+                            <option value="D181">D181 (Desbaste Pesado)</option>
+                            <option value="D126" selected>D126 (Fluting Estándar)</option>
+                            <option value="D91">D91 (Uso General)</option>
+                            <option value="D64">D64 (Acabado Fine)</option>
+                            <option value="D46">D46 (Pulido / Espejo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card p-3 mb-3">
+                    <label class="d-block mb-2 text-info fw-bold text-center">📏 PERFIL GEOMÉTRICO 2D DE MUELA FEPA</label>
+                    <div class="viewport-hud-wrapper">
+                        <div class="viewport-hud-toolbar">
+                            <button type="button" class="hud-btn" title="Zoom In" onclick="ajustarZoomM1(0.15)">＋</button>
+                            <button type="button" class="hud-btn" title="Zoom Out" onclick="ajustarZoomM1(-0.15)">－</button>
+                            <button type="button" class="hud-btn" title="Reset Vista" onclick="resetZoomM1()">100%</button>
+                            <div class="hud-divider"></div>
+                            <button type="button" class="hud-btn active" id="btn-toggle-cotas-m1" onclick="toggleCotasM1()">📏 Cotas</button>
+                            <button type="button" class="hud-btn active" id="btn-toggle-grid-m1" onclick="toggleGridM1()">🌐 Grid</button>
+                            <div class="hud-divider"></div>
+                            <button type="button" class="hud-btn" title="Exportar PNG" onclick="exportarPNGM1()">📸 PNG</button>
+                        </div>
+
+                        <div class="bg-dark border border-secondary rounded p-2 d-flex justify-content-center align-items-center" style="min-height: 200px; overflow: hidden; background-color: #080d1e !important;">
+                            <canvas id="wheelCanvas" width="520" height="190" class="w-100" style="cursor: grab;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label w-100 text-center fw-bold">Diámetro Rueda (D)</label>
+                        <div class="input-group">
+                            <input type="number" id="diametro_rueda" class="form-control enter-next" value="100" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+                    <div class="col-6" id="group-ancho">
+                        <label class="form-label w-100 text-center fw-bold" id="lbl-ancho">Ancho Rueda (U / T)</label>
+                        <div class="input-group">
+                            <input type="number" id="ancho_rueda" class="form-control enter-next" value="10" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6" id="group-angulo-v">
+                        <label class="form-label w-100 text-center fw-bold">Ángulo Rueda (V°)</label>
+                        <div class="input-group">
+                            <input type="number" id="angulo_v" class="form-control enter-next" value="45" step="any">
+                            <span class="input-group-text">°</span>
+                        </div>
+                    </div>
+                    <div class="col-6" id="group-radio-r">
+                        <label class="form-label w-100 text-center fw-bold">Radio Borde (R)</label>
+                        <div class="input-group">
+                            <input type="number" id="radio_punta" class="form-control enter-next" value="0.127" step="any">
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+                    <div class="col-6 d-none" id="group-ancho-w">
+                        <label class="form-label w-100 text-center fw-bold">Ancho Labio (W)</label>
+                        <div class="input-group">
+                            <input type="number" id="ancho_labio_w" class="form-control enter-next" value="6.0" step="any">
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-secondary my-3">
+                <h6 class="text-info mb-3 text-center fw-bold" id="section-title-corte">Parámetros de Corte Auto-Ajustados</h6>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6" id="group-profundidad">
+                        <label class="form-label w-100 text-center fw-bold" id="lbl-profundidad">Profundidad Total (ap)</label>
+                        <div class="input-group">
+                            <input type="number" id="profundidad" class="form-control enter-next" value="2.5" step="any" required>
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6" id="group-canales">
+                        <label class="form-label w-100 text-center fw-bold">N° de Canales (Z)</label>
+                        <input type="number" id="num_canales" class="form-control enter-next text-center" value="4" step="1">
+                    </div>
+
+                    <div class="col-6" id="group-lc">
+                        <label class="form-label w-100 text-center fw-bold">Long. Corte (Lc)</label>
+                        <div class="input-group">
+                            <input type="number" id="longitud_corte" class="form-control enter-next" value="30" step="any">
+                            <span class="input-group-text unit-label">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6" id="group-pasadas">
+                        <label class="form-label w-100 text-center fw-bold">Pasadas Desbaste</label>
+                        <input type="number" id="pasadas_desbaste" class="form-control enter-next text-center" value="2" step="1">
+                        <small class="d-block text-center mt-1 text-light">Infeed: <span id="lbl-infeed" class="text-info fw-bold">1.25 mm/pasada</span></small>
+                    </div>
+
+                    <div class="col-6" id="group-avance">
+                        <label class="form-label w-100 text-center fw-bold">Avance Feed (Vf)</label>
+                        <div class="input-group">
+                            <input type="number" id="avance" class="form-control enter-next" value="120" step="any" required>
+                            <span class="input-group-text feed-unit-label">mm/min</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6" id="group-rpm">
+                        <label class="form-label w-100 text-center fw-bold">Velocidad Spindle</label>
+                        <div class="input-group">
+                            <input type="number" id="rpm" class="form-control enter-next" value="4800" step="any" required>
+                            <span class="input-group-text">RPM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-info text-dark w-100 py-2 fw-bold mt-2" style="background-color: #00f2fe; border: none;">CALCULAR RECTIFICADO</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: MONITOREO TÉCNICO -->
+    <div class="col-lg-5 col-md-12">
+        <div class="card card-custom p-4 text-center">
+            <h5 class="text-accent mb-3 text-center fw-bold" id="panel-monitoreo-titulo">📊 Monitoreo Físico CNC</h5>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="p-3 rounded border border-secondary h-100 panel-box">
+                        <label class="w-100 text-center mb-1 text-light fw-bold">HUSILLO CNC</label>
+                        <div class="gauge-box my-2">
+                            <canvas id="spindleGaugeCanvas" width="140" height="140" class="gauge-canvas"></canvas>
+                            <div id="gauge-spindle-val" class="gauge-value">0%</div>
+                            <div id="res-kw" class="gauge-label">0.0 kW</div>
+                        </div>
+                        <div id="est-spindle" class="small fw-bold text-center">Carga Segura</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 rounded border border-secondary h-100 panel-box">
+                        <label class="w-100 text-center mb-1 text-light fw-bold">VELOCIDAD (Vs)</label>
+                        <div class="gauge-box my-2">
+                            <canvas id="vsGaugeCanvas" width="140" height="140" class="gauge-canvas"></canvas>
+                            <div id="res-vs" class="gauge-value status-ok">0.0</div>
+                            <div id="vs-unit" class="gauge-label">m/s</div>
+                        </div>
+                        <div id="est-vs" class="small fw-bold text-center text-light">Standby</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 rounded border border-warning mb-3 text-center panel-box">
+                <label class="d-block mb-2 text-warning fw-bold">⚡ POTENCIA CONSUMIDA Y CARGA POR PASADA</label>
+                <div style="height: 140px; position: relative;">
+                    <canvas id="chartPasadasCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 fw-bold">TASA DE REMOCIÓN (Q'):</label>
+                <span id="res-q" class="fs-4 fw-bold">0.00</span> <span id="q-unit" class="small text-light">mm³/mm·s</span>
+                <div id="est-q" class="small fw-bold mt-1 text-center text-light">Estado de proceso...</div>
+            </div>
+
+            
+<div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+    <label class="d-block mb-1 fw-bold text-muted small">RUGOSIDAD OBJETIVO DE REFERENCIA (Ra):</label>
+    <span id="res-ra" class="fs-4 fw-bold text-info">0.25</span> <span class="small text-light">µm</span>
+    <div id="est-ra" class="small text-light mt-1 text-center">Referencia teórica FEPA D126</div>
+</div>
+
+            <div class="p-3 rounded border border-secondary mb-2 text-center panel-box">
+                <label class="d-block mb-1 fw-bold">CARGA LINEAL ESPECÍFICA (F't):</label>
+                <span id="res-ft-esp" class="fs-4 fw-bold status-warning">0.0</span> <span class="small text-light">N/mm</span>
+            </div>
+
+            <div class="p-3 rounded border border-secondary text-center panel-box">
+                <label class="d-block mb-1 fw-bold">TIEMPO ESTIMADO:</label>
+                <span id="res-tiempo" class="fs-4 fw-bold">0m 0s</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUnit = 'mm';
+let pasadasChart = null;
+
+let scaleM1 = 1.0;
+let panXM1 = 0;
+let panYM1 = 0;
+let showCotasM1 = true;
+let showGridM1 = true;
+
+const presetsMatriz = {
+    K: {
+        carburo: { co: '10', wc: 'Sub-micrón (0.5 µm)', hv: '1620 HV30' },
+        fluting: { rpm: 4800, avance: 120, profundidad: 2.5, pasadas: 2, bond: 'hibrido', grano: 'D126' },
+        gashing: { rpm: 5200, avance: 60, profundidad: 1.2, pasadas: 1, bond: 'hibrido', grano: 'D91' },
+        relief:  { rpm: 5500, avance: 250, profundidad: 0.35, pasadas: 1, bond: 'resina', grano: 'D91' }
+    },
+    P: {
+        carburo: { co: '10', wc: 'Micro-grano (0.8 µm)', hv: '1580 HV30' },
+        fluting: { rpm: 4800, avance: 110, profundidad: 2.2, pasadas: 2, bond: 'hibrido', grano: 'D126' },
+        gashing: { rpm: 5200, avance: 55, profundidad: 1.0, pasadas: 1, bond: 'hibrido', grano: 'D91' },
+        relief:  { rpm: 5500, avance: 220, profundidad: 0.3, pasadas: 1, bond: 'resina', grano: 'D91' }
+    },
+    M: {
+        carburo: { co: '12', wc: 'Sub-micrón Tenaz (0.6 µm)', hv: '1520 HV30' },
+        fluting: { rpm: 4600, avance: 100, profundidad: 2.0, pasadas: 2, bond: 'hibrido', grano: 'D126' },
+        gashing: { rpm: 5000, avance: 50, profundidad: 1.0, pasadas: 1, bond: 'hibrido', grano: 'D91' },
+        relief:  { rpm: 5300, avance: 200, profundidad: 0.25, pasadas: 1, bond: 'resina', grano: 'D91' }
+    },
+    N: {
+        carburo: { co: '6', wc: 'Ultra-Fine / Extra Duro (0.3 µm)', hv: '1780 HV30' },
+        fluting: { rpm: 4500, avance: 160, profundidad: 2.8, pasadas: 2, bond: 'hibrido', grano: 'D126' },
+        gashing: { rpm: 5000, avance: 80, profundidad: 1.5, pasadas: 1, bond: 'resina', grano: 'D126' },
+        relief:  { rpm: 5200, avance: 300, profundidad: 0.4, pasadas: 1, bond: 'resina', grano: 'D91' }
+    },
+    S: {
+        carburo: { co: '12', wc: 'Nano-Grano Ultra Tenaz (0.4 µm)', hv: '1540 HV30' },
+        fluting: { rpm: 4400, avance: 80, profundidad: 1.5, pasadas: 3, bond: 'hibrido', grano: 'D91' },
+        gashing: { rpm: 4800, avance: 40, profundidad: 0.8, pasadas: 1, bond: 'hibrido', grano: 'D64' },
+        relief:  { rpm: 5000, avance: 160, profundidad: 0.2, pasadas: 1, bond: 'resina', grano: 'D64' }
+    },
+    H: {
+        carburo: { co: '6', wc: 'Nano-Grano Duro (0.2 µm)', hv: '1820 HV30' },
+        fluting: { rpm: 5000, avance: 70, profundidad: 1.2, pasadas: 3, bond: 'hibrido', grano: 'D91' },
+        gashing: { rpm: 5400, avance: 35, profundidad: 0.6, pasadas: 1, bond: 'hibrido', grano: 'D64' },
+        relief:  { rpm: 5800, avance: 140, profundidad: 0.15, pasadas: 1, bond: 'resina', grano: 'D64' }
+    }
+};
+
+const muelasPorOperacion = {
+    fluting: [
+        { id: '1V1', text: '1V1 - Angular / V-Profile' },
+        { id: '1A1', text: '1A1 - Disco Recto' },
+        { id: '14A1', text: '14A1 - Disco con Rebajo' }
+    ],
+    gashing: [
+        { id: '1V1', text: '1V1 - Angular Estrecho' },
+        { id: '1A1', text: '1A1 - Disco Entrada' }
+    ],
+    relief: [
+        { id: '11V9', text: '11V9 - Copa Cónica 70°/45°' },
+        { id: '11V5', text: '11V5 - Copa Perfil Bajo' },
+        { id: '12V9', text: '12V9 - Copa Invertida' },
+        { id: '12A2', text: '12A2 - Copa Plana Cara' }
+    ]
+};
+
+function cargarDatosTransferidos() {
+    const toolDataStr = localStorage.getItem('toolmaker_active_tool');
+    if (toolDataStr) {
+        try {
+            const toolData = JSON.parse(toolDataStr);
+            if (toolData.diametro_fresa) {
+                const elLong = document.getElementById('longitud_corte');
+                const elProf = document.getElementById('profundidad');
+                const elCanales = document.getElementById('num_canales');
+
+                if (elLong) elLong.value = toolData.longitud_corte || 30;
+                if (elProf) elProf.value = toolData.profundidad_canal || 1.5;
+                if (elCanales) elCanales.value = toolData.num_canales || 4;
+            }
+            localStorage.removeItem('toolmaker_active_tool');
+        } catch(e) { console.error("Error al cargar herramienta transferida", e); }
+    }
+
+    const fepaDataStr = localStorage.getItem('toolmaker_fepa_muela');
+    if (fepaDataStr) {
+        try {
+            const fepaData = JSON.parse(fepaDataStr);
+            const elGrano = document.getElementById('grano_fepa');
+            const elBond = document.getElementById('aglomerante');
+
+            if (elGrano && fepaData.grano) elGrano.value = fepaData.grano;
+            if (elBond && fepaData.bond) {
+                const bondMap = { 'HB': 'hibrido', 'B': 'resina', 'V': 'vitrificado', 'M': 'metalico' };
+                elBond.value = bondMap[fepaData.bond] || 'hibrido';
+            }
+            localStorage.removeItem('toolmaker_fepa_muela');
+        } catch(e) { console.error("Error al cargar muela FEPA transferida", e); }
+    }
+
+    const brocaDataStr = localStorage.getItem('toolmaker_broca_transfer');
+    if (brocaDataStr) {
+        try {
+            const brocaData = JSON.parse(brocaDataStr);
+            const elLong = document.getElementById('longitud_corte');
+            const elProf = document.getElementById('profundidad');
+            const elCanales = document.getElementById('num_canales');
+
+            if (elLong) elLong.value = brocaData.longitud_canal || 50;
+            if (elProf) elProf.value = (parseFloat(brocaData.diametro_broca) * 0.28).toFixed(2);
+            if (elCanales) elCanales.value = 2;
+            
+            localStorage.removeItem('toolmaker_broca_transfer');
+        } catch(e) { console.error("Error al cargar broca transferida", e); }
+    }
+}
+
+function cambiarUnidadM1(newUnit) {
+    if (newUnit === currentUnit) return;
+
+    const isToInch = (newUnit === 'in');
+    const factor = isToInch ? (1.0 / 25.4) : 25.4;
+
+    const campos = ['diametro_rueda', 'ancho_rueda', 'radio_punta', 'ancho_labio_w', 'profundidad', 'longitud_corte', 'avance'];
+
+    campos.forEach(id => {
+        const input = document.getElementById(id);
+        if (input && input.value !== '' && !isNaN(input.value)) {
+            const val = parseFloat(input.value);
+            input.value = (val * factor).toFixed(isToInch ? 4 : 3);
+        }
+    });
+
+    currentUnit = newUnit;
+    document.querySelectorAll('.unit-label').forEach(el => el.textContent = currentUnit);
+
+    const feedLabel = document.querySelector('.feed-unit-label');
+    if (feedLabel) feedLabel.textContent = isToInch ? 'in/min' : 'mm/min';
+
+    const vsUnitLabel = document.getElementById('vs-unit');
+    if (vsUnitLabel) vsUnitLabel.textContent = isToInch ? 'SFPM' : 'm/s';
+
+    const qUnitLabel = document.getElementById('q-unit');
+    if (qUnitLabel) qUnitLabel.textContent = isToInch ? 'in³/in·s' : 'mm³/mm·s';
+
+    calcularInfeedVisual();
+    renderWheelCanvas();
+    ejecutarCalculo();
+}
+
+function actualizarVisibilidadControlesRueda() {
+    const tipoRueda = getValStr('tipo_rueda', '1V1');
+    const grpAnguloV = document.getElementById('group-angulo-v');
+    if (grpAnguloV) {
+        if (tipoRueda === '1V1') grpAnguloV.classList.remove('d-none');
+        else grpAnguloV.classList.add('d-none');
+    }
+    renderWheelCanvas();
+}
+
+function autoGenerarParametrosEnCascada() {
+    const iso = document.getElementById('material_iso')?.value || 'K';
+    const op = getValStr('operacion', 'fluting');
+    
+    const matData = presetsMatriz[iso];
+    const carbData = matData.carburo;
+    const procData = matData[op];
+
+    document.getElementById('carburo_co').value = carbData.co;
+    document.getElementById('carburo_grano_wc').value = carbData.wc;
+    document.getElementById('carburo_dureza').value = carbData.hv;
+
+    document.getElementById('aglomerante').value = procData.bond;
+    document.getElementById('grano_fepa').value = procData.grano;
+
+    const isInch = (currentUnit === 'in');
+    const factorUnit = isInch ? (1.0 / 25.4) : 1.0;
+
+    document.getElementById('rpm').value = procData.rpm;
+    document.getElementById('avance').value = (procData.avance * factorUnit).toFixed(isInch ? 2 : 1);
+    document.getElementById('profundidad').value = (procData.profundidad * factorUnit).toFixed(isInch ? 4 : 3);
+    document.getElementById('pasadas_desbaste').value = procData.pasadas;
+
+    actualizarVisibilidadControlesRueda();
+    calcularInfeedVisual();
+    ejecutarCalculo();
+}
+
+function ajustarZoomM1(delta) {
+    scaleM1 = Math.max(0.4, Math.min(8.0, scaleM1 + delta));
+    renderWheelCanvas();
+}
+
+function resetZoomM1() {
+    scaleM1 = 1.0;
+    panXM1 = 0;
+    panYM1 = 0;
+    renderWheelCanvas();
+}
+
+function toggleCotasM1() {
+    showCotasM1 = !showCotasM1;
+    document.getElementById('btn-toggle-cotas-m1')?.classList.toggle('active', showCotasM1);
+    renderWheelCanvas();
+}
+
+function toggleGridM1() {
+    showGridM1 = !showGridM1;
+    document.getElementById('btn-toggle-grid-m1')?.classList.toggle('active', showGridM1);
+    renderWheelCanvas();
+}
+
+function exportarPNGM1() {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    dibujarGeometriaMuela(tempCtx, tempCanvas.width, tempCanvas.height, false, showCotasM1);
+
+    const link = document.createElement('a');
+    link.download = 'ToolMaker-Muela-2D.png';
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+}
+
+function getValNum(id, defaultVal = 0) {
+    const el = document.getElementById(id);
+    return (!el || el.value === '' || isNaN(el.value)) ? defaultVal : parseFloat(el.value);
+}
+
+function getValStr(id, defaultVal = '') {
+    return document.getElementById(id)?.value || defaultVal;
+}
+
+function renderWheelCanvas() {
+    const canvas = document.getElementById('wheelCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    dibujarGeometriaMuela(ctx, canvas.width, canvas.height, showGridM1, showCotasM1);
+}
+
+// MOTOR GRÁFICO 2.5D FEPA HOMOLOGADO CON MÓDULO 4
+function dibujarGeometriaMuela(ctx, width, height, renderGrid, renderCotas) {
+    const canvas = ctx.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+
+    if (renderGrid) {
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
+        ctx.lineWidth = 1;
+        const gridSize = 16 * scaleM1;
+        const offsetX = (w / 2 + panXM1) % gridSize;
+        const offsetY = (h / 2 + panYM1) % gridSize;
+
+        for (let x = offsetX; x < w; x += gridSize) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = offsetY; y < h; y += gridSize) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+    }
+
+    ctx.save();
+    ctx.translate(w / 2 + panXM1, h / 2 + 10 + panYM1);
+    ctx.scale(scaleM1, scaleM1);
+
+    const forma = getValStr('tipo_rueda', '1V1');
+    const dMuela = getValNum('diametro_rueda', 100);
+
+    const rD = 85;
+    const ry = rD * 0.22;
+    const bodyH = 38;
+    const holeR = rD * 0.28;
+
+    ctx.lineWidth = 1.8;
+
+    if (forma === '1V1') {
+        const topR = rD * 0.55;
+        const botR = rD;
+        const h1V1 = bodyH * 0.75;
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(-botR, 0); ctx.lineTo(-topR, -h1V1);
+        ctx.ellipse(0, -h1V1, topR, topR * 0.22, 0, Math.PI, 0, true);
+        ctx.lineTo(botR, 0);
+        ctx.ellipse(0, 0, botR, botR * 0.22, 0, 0, Math.PI, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(0, -h1V1 * 0.25, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        const xOffsetR = topR + (botR - topR) * 0.35;
+        const xOffsetH = h1V1 * 0.65;
+        ctx.strokeStyle = '#b45309';
+        ctx.fillStyle = 'rgba(180, 83, 9, 0.65)';
+        ctx.lineWidth = 1.8;
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, botR, botR * 0.22, 0, Math.PI * 0.05, Math.PI * 0.95, false);
+        ctx.lineTo(xOffsetR * Math.cos(Math.PI * 0.95), -xOffsetH + (xOffsetR * 0.22) * Math.sin(Math.PI * 0.95));
+        ctx.ellipse(0, -xOffsetH, xOffsetR, xOffsetR * 0.22, 0, Math.PI * 0.95, Math.PI * 0.05, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    } else if (forma === '11V9' || forma === '11V5') {
+        const is11V5 = (forma === '11V5');
+        const topR = rD;
+        const botR = rD * (is11V5 ? 0.75 : 0.60);
+        const hCopa = is11V5 ? bodyH * 0.8 : bodyH * 1.15;
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(-topR, -hCopa); ctx.lineTo(-botR, 0);
+        ctx.ellipse(0, 0, botR, botR * 0.25, 0, Math.PI, 0, true);
+        ctx.lineTo(topR, -hCopa);
+        ctx.ellipse(0, -hCopa, topR, topR * 0.22, 0, 0, Math.PI, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        const innerR = topR * 0.88;
+        const bandH = hCopa * 0.35;
+        ctx.strokeStyle = '#b45309';
+        ctx.fillStyle = 'rgba(180, 83, 9, 0.75)';
+
+        ctx.beginPath();
+        ctx.ellipse(0, -hCopa, topR, topR * 0.22, 0, 0, 2 * Math.PI);
+        ctx.ellipse(0, -hCopa, innerR, innerR * 0.22, 0, 0, 2 * Math.PI, true);
+        ctx.fill(); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.ellipse(0, -hCopa, topR, topR * 0.22, 0, Math.PI * 0.05, Math.PI * 0.95, false);
+        ctx.lineTo(topR * Math.cos(Math.PI * 0.95), -hCopa + bandH);
+        ctx.ellipse(0, -hCopa + bandH, topR * 0.94, (topR * 0.94) * 0.22, 0, Math.PI * 0.95, Math.PI * 0.05, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    } else if (forma === '12V9' || forma === '12A2') {
+        const topR = rD;
+        const botR = rD * 0.65;
+        const hPlato = bodyH * 0.95;
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(-topR, -hPlato); ctx.lineTo(-botR, 0);
+        ctx.ellipse(0, 0, botR, botR * 0.25, 0, Math.PI, 0, true);
+        ctx.lineTo(topR, -hPlato);
+        ctx.ellipse(0, -hPlato, topR, topR * 0.22, 0, 0, Math.PI, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, holeR, holeR * 0.25, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        const innerR = topR * 0.82;
+        ctx.strokeStyle = '#b45309';
+        ctx.fillStyle = 'rgba(180, 83, 9, 0.85)';
+
+        ctx.beginPath();
+        ctx.ellipse(0, -hPlato, topR, topR * 0.22, 0, 0, 2 * Math.PI);
+        ctx.ellipse(0, -hPlato, innerR, innerR * 0.22, 0, 0, 2 * Math.PI, true);
+        ctx.fill(); ctx.stroke();
+
+    } else {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        ctx.moveTo(-rD, -bodyH / 2);
+        ctx.lineTo(-rD, bodyH / 2);
+        ctx.ellipse(0, bodyH / 2, rD, ry, 0, Math.PI, 0, true);
+        ctx.lineTo(rD, -bodyH / 2);
+        ctx.ellipse(0, -bodyH / 2, rD, ry, 0, 0, Math.PI, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.beginPath();
+        ctx.ellipse(0, -bodyH / 2, holeR, holeR * 0.22, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#b45309';
+        ctx.fillStyle = 'rgba(180, 83, 9, 0.65)';
+        ctx.beginPath();
+        ctx.ellipse(0, -bodyH / 2, rD, ry, 0, Math.PI * 0.05, Math.PI * 0.95, false);
+        ctx.lineTo(rD * Math.cos(Math.PI * 0.95), bodyH / 2);
+        ctx.ellipse(0, bodyH / 2, rD, ry, 0, Math.PI * 0.95, Math.PI * 0.05, true);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+
+    if (renderCotas) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        const dec = (currentUnit === 'in') ? 4 : 3;
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-rD, bodyH / 2 + 18); ctx.lineTo(rD, bodyH / 2 + 18); ctx.stroke();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(`ØD ${dMuela.toFixed(dec)} ${currentUnit} (FEPA ${forma})`, 0, bodyH / 2 + 22);
+    }
+
+    ctx.restore();
+    ctx.restore();
+}
+
+function drawGauge(canvasId, value, min, max, color) {
+    const elCanvas = document.getElementById(canvasId);
+    if (!elCanvas) return;
+    const ctx = elCanvas.getContext('2d');
+    
+    const size = 140;
+    elCanvas.width = size; elCanvas.height = size;
+    ctx.clearRect(0, 0, size, size);
+
+    const cx = size / 2; const cy = size / 2 + 10; const r = 48;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI * 0.8, Math.PI * 2.2);
+    ctx.lineWidth = 10; ctx.strokeStyle = '#2a3a5e'; ctx.lineCap = 'round'; ctx.stroke();
+
+    const pct = Math.min(Math.max((value - min) / (max - min), 0), 1);
+    const endAngle = (Math.PI * 0.8) + (pct * Math.PI * 1.4);
+
+    if (pct > 0) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, Math.PI * 0.8, endAngle);
+        ctx.lineWidth = 10; ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.stroke();
+    }
+}
+
+let pasadasChartInstance = null;
+
+function actualizarGraficoPasadas(kwNominal, pasadas, pctSpindle) {
+  const canvas = document.getElementById('pasadasChartCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const labels = [];
+  const dataKw = [];
+  const kwPorPasada = kwNominal; // Potencia estimada constante por pasada
+
+  for (let i = 1; i <= pasadas; i++) {
+    labels.push(`Pasada ${i}`);
+    dataKw.push(kwPorPasada);
+  }
+
+  if (pasadasChartInstance) {
+    // Actualización in-place limpia sin destruir el canvas
+    pasadasChartInstance.data.labels = labels;
+    pasadasChartInstance.data.datasets[0].data = dataKw;
+    pasadasChartInstance.data.datasets[0].backgroundColor = pctSpindle > 95 ? 'rgba(255, 23, 68, 0.6)' : 'rgba(56, 189, 248, 0.5)';
+    pasadasChartInstance.data.datasets[0].borderColor = pctSpindle > 95 ? '#ff1744' : '#38bdf8';
+    pasadasChartInstance.update('none'); // Animación fluida sin parpadeo
+  } else {
+    // Creación inicial única
+    pasadasChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Potencia Estimada (kW)',
+          data: dataKw,
+          backgroundColor: 'rgba(56, 189, 248, 0.5)',
+          borderColor: '#38bdf8',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+            ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+          }
+        }
+      }
+    });
+  }
+}
+
+function calcularInfeedVisual() {
+    const total = getValNum('profundidad', 0);
+    const pasadas = getValNum('pasadas_desbaste', 1) || 1;
+    const infeed = (total / pasadas).toFixed(currentUnit === 'in' ? 4 : 3);
+    const lbl = document.getElementById('lbl-infeed');
+    if (lbl) lbl.textContent = `${infeed} ${currentUnit}/pasada`;
+}
+
+async function ejecutarCalculo() {
+    const op = getValStr('operacion', 'fluting');
+    const pasadasVal = (op === 'fluting') ? getValNum('pasadas_desbaste', 1) : 1;
+
+    // Capturar los valores numéricos directamente de los inputs
+    const elProf = document.getElementById('profundidad');
+    const elDiam = document.getElementById('diametro_rueda');
+    const elAncho = document.getElementById('ancho_rueda');
+    const elAvance = document.getElementById('avance');
+    const elRpm = document.getElementById('rpm');
+
+    const data = {
+        operacion: op,
+        unidad: currentUnit,
+        material_iso: getValStr('material_iso', 'K'),
+        carburo_co: getValStr('carburo_co', '10'),
+        tipo_rueda: getValStr('tipo_rueda', '1V1'),
+        aglomerante: getValStr('aglomerante', 'hibrido'),
+        grano_fepa: getValStr('grano_fepa', 'D126'),
+        diametro_rueda: elDiam ? parseFloat(elDiam.value) : 100,
+        ancho_rueda: elAncho ? parseFloat(elAncho.value) : 10,
+        ancho_labio_w: getValNum('ancho_labio_w', 6),
+        longitud_corte: getValNum('longitud_corte', 30),
+        profundidad: elProf ? parseFloat(elProf.value) : 1.5,
+        pasadas_desbaste: pasadasVal,
+        num_canales: getValNum('num_canales', 4),
+        avance: elAvance ? parseFloat(elAvance.value) : 120,
+        rpm: elRpm ? parseFloat(elRpm.value) : 4800
+    };
+
+    try {
+        const res = await fetch('/api/calcular-rectificado', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const json = await res.json();
+
+        // VALIDACIÓN FÍSICA: SI RECHAZA LA API
+        if (!json.success) {
+            const msgs = json.detalles ? json.detalles.join('<br>') : json.error;
+
+            const estSpindleEl = document.getElementById('est-spindle');
+            const valSpindleEl = document.getElementById('gauge-spindle-val');
+            const estQEl = document.getElementById('est-q');
+            const resQEl = document.getElementById('res-q');
+
+            if (valSpindleEl) {
+                valSpindleEl.textContent = "ALERTA";
+                valSpindleEl.style.color = "#ff1744";
+            }
+            if (estSpindleEl) {
+                estSpindleEl.textContent = "🛑 Límite Físico Excedido";
+                estSpindleEl.style.color = "#ff1744";
+            }
+            if (resQEl) {
+                resQEl.textContent = "ERR";
+                resQEl.style.color = "#ff1744";
+            }
+            if (estQEl) {
+                estQEl.innerHTML = `<span class="text-danger fw-bold">${msgs}</span>`;
+            }
+
+            drawGauge('spindleGaugeCanvas', 100, 0, 100, '#ff1744');
+            drawGauge('vsGaugeCanvas', 0, 0, currentUnit === 'in' ? 7000 : 50, '#ff1744');
+            return;
+        }
+
+        // SI ES CORRECTO -> MOSTRAR RESULTADOS NOMINALES
+        if (document.getElementById('res-vs')) document.getElementById('res-vs').textContent = json.vs;
+        if (document.getElementById('est-vs')) document.getElementById('est-vs').textContent = "Estado: " + json.estado_vs;
+        if (document.getElementById('res-q')) {
+            document.getElementById('res-q').textContent = json.q_prime;
+            document.getElementById('res-q').style.color = "#f8fafc";
+        }
+        if (document.getElementById('est-q')) {
+            document.getElementById('est-q').textContent = "Estado: " + json.estado_q;
+            document.getElementById('est-q').style.color = "#94a3b8";
+        }
+        if (document.getElementById('res-ra')) document.getElementById('res-ra').textContent = json.ra_micras;
+        if (document.getElementById('est-ra')) document.getElementById('est-ra').textContent = json.estado_ra;
+        if (document.getElementById('res-ft-esp')) document.getElementById('res-ft-esp').textContent = json.ft_especifica;
+        if (document.getElementById('res-tiempo')) document.getElementById('res-tiempo').textContent = json.tiempo_str;
+
+        const pct = json.carga_spindle_pct !== undefined ? json.carga_spindle_pct : 0;
+        const kw = json.potencia_kw !== undefined ? json.potencia_kw : 0;
+        const estado = json.estado_spindle || 'Carga Segura';
+
+        if (document.getElementById('res-kw')) document.getElementById('res-kw').textContent = kw + " kW";
+        const valSpindleEl = document.getElementById('gauge-spindle-val');
+        const estSpindleEl = document.getElementById('est-spindle');
+        
+        if (valSpindleEl) valSpindleEl.textContent = pct + "%";
+        if (estSpindleEl) estSpindleEl.textContent = estado;
+
+        let colorHex = '#00e676';
+        if (pct > 75 && pct <= 95) colorHex = '#ffea00';
+        else if (pct > 95) colorHex = '#ff1744';
+
+        if (valSpindleEl) valSpindleEl.style.color = colorHex;
+        if (estSpindleEl) estSpindleEl.style.color = colorHex;
+
+        drawGauge('spindleGaugeCanvas', pct, 0, 100, colorHex);
+        drawGauge('vsGaugeCanvas', json.vs, 0, currentUnit === 'in' ? 7000 : 50, '#00f2fe');
+
+        actualizarGraficoPasadas(kw, pasadasVal, pct);
+
+    } catch (err) {
+        console.error("Error ejecutando cálculo:", err);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    cargarDatosTransferidos();
+
+    document.getElementById('material_iso')?.addEventListener('change', autoGenerarParametrosEnCascada);
+    document.getElementById('btn-reset-preset')?.addEventListener('click', autoGenerarParametrosEnCascada);
+
+    document.getElementById('operacion')?.addEventListener('change', function() {
+        const op = this.value;
+        const selectMuela = document.getElementById('tipo_rueda');
+        selectMuela.innerHTML = '';
+
+        const opciones = muelasPorOperacion[op] || [];
+        opciones.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.text;
+            selectMuela.appendChild(option);
+        });
+
+        autoGenerarParametrosEnCascada();
+    });
+
+    document.getElementById('tipo_rueda')?.addEventListener('change', function() {
+        actualizarVisibilidadControlesRueda();
+        ejecutarCalculo();
+    });
+
+    ['carburo_co', 'aglomerante', 'grano_fepa'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', ejecutarCalculo);
+    });
+
+    ['profundidad', 'pasadas_desbaste', 'diametro_rueda', 'ancho_rueda', 'angulo_v', 'avance', 'rpm'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', function() {
+            calcularInfeedVisual();
+            renderWheelCanvas();
+            ejecutarCalculo();
+        });
+    });
+
+    document.getElementById('operacion')?.dispatchEvent(new Event('change'));
+    setTimeout(renderWheelCanvas, 100);
+});
+
+document.getElementById('form-calc')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    ejecutarCalculo();
+});
+</script>
+{% endblock %}
