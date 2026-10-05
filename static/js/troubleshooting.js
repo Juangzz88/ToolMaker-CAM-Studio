@@ -4,9 +4,9 @@
 
 function calcCarburo() {
   const co = document.getElementById('carburo_co')?.value || '10';
-  const eVal = { '6': '630 GPa', '8': '610 GPa', '10': '590 GPa', '12': '560 GPa' }[co];
-  const kcVal = { '6': '3100 N/mm²', '8': '2950 N/mm²', '10': '2800 N/mm²', '12': '2600 N/mm²' }[co];
-  const hvVal = { '6': '1780 HV30', '8': '1700 HV30', '10': '1620 HV30', '12': '1520 HV30' }[co];
+  const eVal = { '6': '630 GPa', '8': '610 GPa', '10': '590 GPa', '12': '560 GPa' }[co] || '590 GPa';
+  const kcVal = { '6': '3100 N/mm²', '8': '2950 N/mm²', '10': '2800 N/mm²', '12': '2600 N/mm²' }[co] || '2800 N/mm²';
+  const hvVal = { '6': '1780 HV30', '8': '1700 HV30', '10': '1620 HV30', '12': '1520 HV30' }[co] || '1620 HV30';
   
   if (document.getElementById('res-carb-e')) document.getElementById('res-carb-e').textContent = eVal;
   if (document.getElementById('res-carb-kc')) document.getElementById('res-carb-kc').textContent = kcVal;
@@ -17,7 +17,7 @@ function calcDeflexion() {
   const D_ext = parseFloat(document.getElementById('def_D_ext')?.value) || 12.0;
   const d_nuc = parseFloat(document.getElementById('def_d')?.value) || 7.8;
   const l_vol = parseFloat(document.getElementById('def_l')?.value) || 35.0;
-  const z_canales = parseInt(document.getElementById('def_z')?.value) || 4;
+  const z_canales = parseInt(document.getElementById('def_z')?.value, 10) || 4;
   const helice_deg = parseFloat(document.getElementById('def_helice')?.value) || 35.0;
   const fRad = parseFloat(document.getElementById('def_frad')?.value) || 150.0;
   const co = document.getElementById('carburo_co')?.value || '10';
@@ -52,11 +52,20 @@ function calcDeflexion() {
 
 function calcDin6535() {
   const d = document.getElementById('din_diam')?.value || '10';
-  const forceMap = { '6': '> 45 Nm', '8': '> 85 Nm', '10': '> 130 Nm', '12': '> 210 Nm', '16': '> 380 Nm' };
-  if (document.getElementById('res-din-force')) document.getElementById('res-din-force').textContent = forceMap[d] || '> 100 Nm';
+  const forceMap = { 
+    '6': 'Mayor a 45 Nm', 
+    '8': 'Mayor a 85 Nm', 
+    '10': 'Mayor a 130 Nm', 
+    '12': 'Mayor a 210 Nm', 
+    '16': 'Mayor a 380 Nm' 
+  };
+  if (document.getElementById('res-din-force')) {
+    document.getElementById('res-din-force').textContent = forceMap[d] || 'Mayor a 100 Nm';
+  }
 }
 
-const matrizTroubleshooting = {
+// Inicialización correcta de la Matriz de Troubleshooting como Objeto Literal
+window.matrizTroubleshooting = {
   chipping: {
     causa: "Fuerza específica de corte o impacto mecánico excesivo al entrar al canal, o sustrato frágil.",
     acciones: [
@@ -116,7 +125,7 @@ function analizarFallaProceso() {
     return;
   }
 
-  const diag = matrizTroubleshooting[sintoma];
+  const diag = window.matrizTroubleshooting[sintoma];
   if (!diag) return;
 
   if (causaTexto) causaTexto.innerHTML = diag.causa;
@@ -137,15 +146,15 @@ function aplicarSolucionTroubleshooting() {
 
   if (adj.factor_vf) {
     const elVf = document.getElementById('avance');
-    if (elVf) elVf.value = Math.round(parseFloat(elVf.value) * adj.factor_vf);
+    if (elVf && elVf.value) elVf.value = Math.round(parseFloat(elVf.value) * adj.factor_vf);
   }
   if (adj.factor_rpm) {
     const elRpm = document.getElementById('rpm');
-    if (elRpm) elRpm.value = Math.round(parseFloat(elRpm.value) * adj.factor_rpm);
+    if (elRpm && elRpm.value) elRpm.value = Math.round(parseFloat(elRpm.value) * adj.factor_rpm);
   }
   if (adj.pasadas_extra) {
     const elPasadas = document.getElementById('pasadas_desbaste');
-    if (elPasadas) elPasadas.value = parseInt(elPasadas.value) + adj.pasadas_extra;
+    if (elPasadas) elPasadas.value = (parseInt(elPasadas.value, 10) || 0) + adj.pasadas_extra;
   }
   if (adj.bond) {
     const elBond = document.getElementById('aglomerante');
@@ -153,7 +162,7 @@ function aplicarSolucionTroubleshooting() {
   }
 
   const modalEl = document.getElementById('modalTroubleshooting');
-  if (modalEl) {
+  if (modalEl && typeof bootstrap !== 'undefined') {
     const modalObj = bootstrap.Modal.getInstance(modalEl);
     if (modalObj) modalObj.hide();
   }

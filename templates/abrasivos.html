@@ -36,7 +36,7 @@
 }
 </style>
 
-<!-- ENCABEZADO HOMOLOGADO MÓDULO 4 (FUERA DE LAS TARJETAS) -->
+<!-- ENCABEZADO HOMOLOGADO MÓDULO 4 -->
 <div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-2">
         <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
@@ -177,6 +177,15 @@ const operacionesPorForma = {
     '11V9': 'Vaciado de Cara (Gashing) / Relief Secundario 70°',
     '12V9': 'Relief de Esquina / Vaciado Invertido 45°',
     '14A1': 'Rebajo de Escalonado / Ranurado Especial'
+};
+
+// Cotas por defecto normalizadas por forma FEPA
+const cotasBaseFormaFEPA = {
+    '1V1':  { D: 125, T: 10, H: 20, X: 3, U: 10, V: 45 },
+    '1A1':  { D: 150, T: 12, H: 32, X: 3, U: 12, V: 0 },
+    '11V9': { D: 100, T: 35, H: 20, X: 3, U: 10, V: 20 },
+    '12V9': { D: 100, T: 25, H: 20, X: 3, U: 10, V: 45 },
+    '14A1': { D: 125, T: 10, H: 32, X: 3, U: 6,  V: 0 }
 };
 
 const datosGrano = {
@@ -436,11 +445,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('btn-enviar-m1')?.addEventListener('click', function() {
         const codigo = document.getElementById('fepa-code-output')?.textContent || '';
+        const forma = document.getElementById('fepa_forma')?.value || '1V1';
+        const abrasivo = document.getElementById('fepa_abrasivo')?.value || 'D';
         const grano = document.getElementById('fepa_grano')?.value || 'D126';
         const bond = document.getElementById('fepa_bond')?.value || 'HB';
+        const conc = document.getElementById('fepa_concentracion')?.value || 'C75';
+        const capaXVal = parseFloat((document.getElementById('fepa_capa_x')?.value || 'X3').replace('X', '')) || 3.0;
 
-        localStorage.setItem('toolmaker_fepa_muela', JSON.stringify({ codigo, grano, bond }));
-        alert(`Muela FEPA (${codigo}) guardada. Lista para transferirse al Módulo 1.`);
+        const baseDims = cotasBaseFormaFEPA[forma] || cotasBaseFormaFEPA['1V1'];
+
+        // Estructura de transferencia enriquecida
+        const payloadMuela = {
+            codigo: codigo,
+            tipo_muela: forma,
+            tipo: forma,
+            diametro_D: baseDims.D,
+            espesor_T: baseDims.T,
+            agujero_H: baseDims.H,
+            profundidad_X: capaXVal,
+            ancho_U: baseDims.U,
+            angulo_V: baseDims.V,
+            abrasivo: abrasivo,
+            tamano_grano: grano,
+            concentracion: conc,
+            bond: bond,
+            grano: grano,
+            liga: bond
+        };
+
+        // Guardar en ambas claves para asegurar compatibilidad total con Módulo 1
+        localStorage.setItem('toolmaker_fepa_muela', JSON.stringify(payloadMuela));
+        localStorage.setItem('toolmaker_selected_wheel', JSON.stringify(payloadMuela));
+
+        alert(`Muela FEPA (${codigo}) guardada con éxito con sus cotas geométricas (${baseDims.D}x${baseDims.T}x${baseDims.H} mm).\nCargando Módulo 1...`);
         window.location.href = '/calculadora-muelas';
     });
 

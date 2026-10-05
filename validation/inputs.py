@@ -1,17 +1,10 @@
-"""
+﻿"""
 ToolMaker CAM Studio — Módulo de Validación de Envolvente Física
 Garantiza que ningún valor de entrada viole los límites mecánicos del husillo ni la herramienta.
 """
+from engineering.material_data import SPECIFIC_CUTTING_ENERGY
 
-# Tabla de Energía Específica ug (J/mm³) con metadatos técnicos y rangos Q'w recomendados
-ENERGIA_ESPECIFICA_RECTIFICADO = {
-    'K': {'ug_base': 38.0, 'material': 'Carburo Sólido / Fundición', 'rango_q_prime': (0.5, 5.0), 'fuente': 'Malkin & Guo'},
-    'P': {'ug_base': 42.0, 'material': 'Aceros al Carbono / Aleados', 'rango_q_prime': (0.5, 4.5), 'fuente': 'Klocke'},
-    'M': {'ug_base': 45.0, 'material': 'Aceros Inoxidables / Dúplex', 'rango_q_prime': (0.5, 3.5), 'fuente': 'Marinescu et al.'},
-    'N': {'ug_base': 18.0, 'material': 'Aluminios / No Ferrosos', 'rango_q_prime': (1.0, 8.0), 'fuente': 'Malkin & Guo'},
-    'S': {'ug_base': 52.0, 'material': 'Superaleaciones Titanio / Inconel', 'rango_q_prime': (0.2, 2.5), 'fuente': 'ISO/TR 14999'},
-    'H': {'ug_base': 48.0, 'material': 'Aceros Templados >55 HRC', 'rango_q_prime': (0.2, 3.0), 'fuente': 'Klocke'}
-}
+GRUPOS_MATERIAL_VALIDOS = list(SPECIFIC_CUTTING_ENERGY.keys())
 
 LIMITES_PROCESO = {
     'diametro_rueda_mm': {'min': 10.0, 'max': 350.0, 'nombre': 'Diámetro de Muela'},
@@ -22,7 +15,6 @@ LIMITES_PROCESO = {
     'diametro_fresa_mm': {'min': 0.1, 'max': 50.0, 'nombre': 'Diámetro Exterior Herramienta'},
     'longitud_corte_mm': {'min': 0.5, 'max': 250.0, 'nombre': 'Longitud de Corte (Lc)'}
 }
-
 def parse_float(val, default=0.0):
     try:
         if val is None or val == '':

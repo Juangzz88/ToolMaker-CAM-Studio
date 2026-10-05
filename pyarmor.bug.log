@@ -1,0 +1,12 @@
+[BUG]: invalid non-printable character U+FEFF (<frozen engineering>, line 1)
+
+## Command Line
+C:\Users\Nancy\Desktop\CNC-Master-toolmaker-v1\.venv\Scripts\pyarmor gen -O release_build\engineering engineering/
+
+## Environments
+Python 3.14.6
+Pyarmor 9.2.7 (trial), 000000, non-profits
+Platform windows.x86_64
+Native windows.amd64
+Home C:\Users\Nancy\.pyarmor
+

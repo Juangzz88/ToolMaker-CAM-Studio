@@ -1,0 +1,28 @@
+# Python / Entorno
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Variables de entorno y configuración sensible
+.env
+.env.local
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Archivos de distribución / build
+dist/
+build/
+*.egg-info/
+
+.env
+*.lic
+private_key.pem

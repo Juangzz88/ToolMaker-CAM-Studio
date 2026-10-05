@@ -349,10 +349,9 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-2 mt-2">
-                    <button type="submit" class="btn btn-info text-dark fw-bold w-50 py-2">CALCULAR BROCA DE CARBURO</button>
-                    <button type="button" id="btn-transfer-broca" class="btn btn-outline-info fw-bold w-50 py-2">⚡ USAR EN MÓDULO 1</button>
-                </div>
+                <div class="mt-2">
+    <button type="submit" id="btn-submit-broca" class="btn btn-info text-dark fw-bold w-100 py-2" style="background-color: #00f2fe; border: none;">CALCULAR GEOMETRÍA BROCA</button>
+</div>
             </form>
         </div>
     </div>
@@ -425,6 +424,26 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL HUD DE ALERTAS PARA MÓDULO BROCAS -->
+<div class="modal fade" id="modalAlertaBrocasHUD" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger" style="background-color: #0d1527; color: #f8fafc; border: 1px solid #ef4444;">
+      <div class="modal-header border-danger" style="border-bottom-color: rgba(239, 68, 68, 0.3) !important;">
+        <h5 class="modal-title text-danger fw-bold d-flex align-items-center gap-2 fs-6">
+          🛑 ALERTA TÉCNICA - LÍMITE DE FABRICACIÓN DE BROCA
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body fs-6" id="msjModalAlertaBroca">
+        Límites físicos o relación aspecto L/D excedidos para brocas.
+      </div>
+      <div class="modal-footer" style="border-top-color: rgba(239, 68, 68, 0.3) !important;">
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-4" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -445,6 +464,17 @@ const kcMateriales = {
     aluminio: 700,
     alto_rendimiento: 2800
 };
+
+function mostrarAlertaBrocaHUD(mensaje) {
+    const elMsj = document.getElementById('msjModalAlertaBroca');
+    if (elMsj) elMsj.textContent = mensaje;
+    
+    const modalEl = document.getElementById('modalAlertaBrocasHUD');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
 
 function aplicarPresetMaterialBroca() {
     const val = document.getElementById('preset_material_broca')?.value || 'acero_inox';
@@ -476,7 +506,7 @@ function aplicarPresetMaterialBroca() {
         document.getElementById('fn_avance').value = isInch ? 0.0031 : 0.08;
     }
 
-    ejecutarCalculoBroca();
+    ejecutarCalculoBroca(true);
 }
 
 function actualizarRelacionAspectoBroca() {
@@ -485,7 +515,7 @@ function actualizarRelacionAspectoBroca() {
     const lc = (d1 * ld) + (d1 * 1.6);
     const dec = currentUnit === 'in' ? 4 : 3;
     document.getElementById('longitud_canal').value = lc.toFixed(dec);
-    ejecutarCalculoBroca();
+    ejecutarCalculoBroca(true);
 }
 
 function calcularToleranciaISOBroca(d, clase = 'm7') {
@@ -584,7 +614,7 @@ document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
         if (unitVc) unitVc.textContent = isToInch ? 'SFPM' : 'm/min';
 
         actualizarBadgeISOBroca();
-        ejecutarCalculoBroca();
+        ejecutarCalculoBroca(true);
     });
 });
 
@@ -795,7 +825,7 @@ function dibujarGeometria(ctx, width, height, renderGrid, renderCotas) {
     ctx.restore();
 }
 
-function ejecutarCalculoBroca() {
+async function ejecutarCalculoBroca(esSubmitManual = false) {
     const d1 = parseFloat(document.getElementById('diametro_broca')?.value || 8.0);
     const lc = parseFloat(document.getElementById('longitud_canal')?.value || 53.0);
     const helice = parseFloat(document.getElementById('helice_broca')?.value || 30);
@@ -805,6 +835,16 @@ function ejecutarCalculoBroca() {
     const fn = parseFloat(document.getElementById('fn_avance')?.value || 0.18);
     const matKey = document.getElementById('preset_material_broca')?.value || 'acero_inox';
     const kc11 = kcMateriales[matKey] || 1900;
+
+    const ratioLD = lc / d1;
+
+    // VALIDACIÓN DE LÍMITES OPERACIONALES DE BROCA CON MODAL HUD
+    if (d1 > 60.0 || ratioLD > 30.0) {
+        if (esSubmitManual) {
+            mostrarAlertaBrocaHUD(`🛑 Diámetro (Ø${d1} ${currentUnit}) o Esbeltez L/D (${ratioLD.toFixed(1)}xD) fuera de límite seguro de fabricación.`);
+        }
+        return;
+    }
 
     const dec = (currentUnit === 'in') ? 4 : 3;
     const d1_mm = (currentUnit === 'in') ? d1 * 25.4 : d1;
@@ -826,14 +866,14 @@ function ejecutarCalculoBroca() {
 
     const estFz = document.getElementById('est-fz');
     if (estFz) {
-    if (fz > 4000) {
-        estFz.textContent = "⚠️ Empuje Elevado (Verificar carga de estabilidad axial K=0.7)";
-        estFz.className = "small fw-bold mt-1 text-danger";
-    } else {
-        estFz.textContent = "✅ Empuje Dentro de Envolvente Segura (Split Point C)";
-        estFz.className = "small fw-bold mt-1 status-ok";
+        if (fz > 4000) {
+            estFz.textContent = "⚠️ Empuje Elevado (Verificar carga de estabilidad axial K=0.7)";
+            estFz.className = "small fw-bold mt-1 text-danger";
+        } else {
+            estFz.textContent = "✅ Empuje Dentro de Envolvente Segura (Split Point C)";
+            estFz.className = "small fw-bold mt-1 status-ok";
+        }
     }
-}
 
     const dwPunta = d1 * (pctDw / 100.0);
     const backTaperAcum = (lc_mm / 100.0) * backTaper_mm * (currentUnit === 'in' ? (1.0 / 25.4) : 1.0);
@@ -857,11 +897,14 @@ function ejecutarCalculoBroca() {
     dibujarBroca2D();
 }
 
+// CAPTURA DE TECLA ENTER CON VALIDACIÓN INMEDIATA
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         const activeElement = document.activeElement;
         if (activeElement && activeElement.classList.contains('enter-next')) {
             e.preventDefault();
+
+            ejecutarCalculoBroca(true);
 
             const inputs = Array.from(document.querySelectorAll('.enter-next'))
                 .filter(el => el.offsetParent !== null && !el.disabled && el.type !== 'hidden');
@@ -871,8 +914,6 @@ document.addEventListener('keydown', function(e) {
                 const nextInput = inputs[currentIndex + 1];
                 nextInput.focus();
                 if (nextInput.select) nextInput.select();
-            } else {
-                ejecutarCalculoBroca();
             }
         }
     }
@@ -924,36 +965,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.getElementById('btn-transfer-broca')?.addEventListener('click', function() {
-        const d1 = parseFloat(document.getElementById('diametro_broca')?.value || 8.0);
-        const lc = parseFloat(document.getElementById('longitud_canal')?.value || 53.0);
-
-        const brocaData = {
-            diametro_broca: d1,
-            longitud_canal: lc,
-            unidad: currentUnit
-        };
-
-        localStorage.setItem('toolmaker_broca_transfer', JSON.stringify(brocaData));
-        alert(`Broca Ø${d1}${currentUnit} guardada. Transfiriendo a Módulo 1...`);
-        window.location.href = '/calculadora-muelas';
-    });
-
     actualizarBadgeISOBroca();
-    ejecutarCalculoBroca();
+    ejecutarCalculoBroca(false);
 });
 
 ['diametro_broca', 'longitud_canal', 'helice_broca', 'angulo_punta', 'pct_nucleo_broca', 'back_taper_val', 'tipo_fajas', 'vc_corte', 'fn_avance', 'clase_tolerancia'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-        el.addEventListener('input', ejecutarCalculoBroca);
-        el.addEventListener('change', ejecutarCalculoBroca);
+        el.addEventListener('input', () => {
+            actualizarBadgeISOBroca();
+            dibujarBroca2D();
+        });
+        el.addEventListener('change', () => ejecutarCalculoBroca(true));
     }
 });
 
 document.getElementById('form-broca')?.addEventListener('submit', function(e) {
     e.preventDefault();
-    ejecutarCalculoBroca();
+    ejecutarCalculoBroca(true);
 });
 </script>
 {% endblock %}

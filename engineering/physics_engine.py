@@ -1,67 +1,46 @@
+﻿# -*- coding: utf-8 -*-
+"""
+Motor Fisico Determinista - Mecanica de Rectificado, Fuerzas y Dinamica.
+ToolMaker CAM Studio - Fase 2
+"""
+
 import math
-from validation.inputs import validar_entrada_rectificado, validar_entrada_geometria
+from typing import Dict, Any
 
-MODULO_YOUNG_CARBURO = {
-    '6': 630000.0,
-    '8': 610000.0,
-    '10': 590000.0,
-    '12': 560000.0
-}
-
-K_FACTOR_EULER = 0.7
-
-def ejecutar_motor_fisico_local(modulo, contexto):
-    broca_data = contexto.get('broca', {})
-    geom_data = contexto.get('geometria', {})
-    operacion_data = contexto.get('operacion', {})
-
-    alerta = False
-    diagnostico = []
-
-    # 1. Validar Envolvente Física en Rectificado
-    if operacion_data:
-        es_val, errs = validar_entrada_rectificado(operacion_data)
-        if not es_val:
-            alerta = True
-            diagnostico.extend(errs)
-
-    # 2. Validar Envolvente Física en Geometría
-    if geom_data:
-        es_val, errs = validar_entrada_geometria(geom_data)
-        if not es_val:
-            alerta = True
-            diagnostico.extend(errs)
-
-    # 3. Pandeo Crítico de Euler (Brocas)
-    if 'broca' in str(modulo).lower() or broca_data:
-        fz = float(broca_data.get('res_fz', broca_data.get('fz_calculado', 0)) or 0)
-        d1 = float(broca_data.get('diametro_broca', 8.0) or 8.0)
-        lc = float(broca_data.get('longitud_canal', 53.0) or 53.0)
-        pct_dw = float(broca_data.get('pct_nucleo_broca', 28.0) or 28.0)
-        co = str(broca_data.get('carburo_co', '10'))
-        fajas = broca_data.get('tipo_fajas', '2_fajas')
-        ld = lc / max(d1, 0.1)
-
-        d_nucleo = d1 * (pct_dw / 100.0)
-        e_carburo = MODULO_YOUNG_CARBURO.get(co, 590000.0)
-        iz_nucleo = (math.pi * (d_nucleo ** 4)) / 64.0
-        
-        longitud_efectiva = K_FACTOR_EULER * lc
-        p_cr = (math.pi ** 2 * e_carburo * iz_nucleo) / (longitud_efectiva ** 2)
-
-        if fz >= p_cr * 0.8 and fz > 0:
-            alerta = True
-            diagnostico.append(f"⚠️ Empuje axial Fz ({fz:.0f} N) cercano a la Carga Crítica Equivalente ({p_cr:.0f} N, K={K_FACTOR_EULER}).")
-        if ld >= 8.0 and fajas != '4_fajas':
-            alerta = True
-            diagnostico.append("⚠️ Regla de Diseño (L/D >= 8x): Se recomiendan 4 fajas guía para estabilidad.")
-
-    if not diagnostico:
-        diagnostico.append("✅ Parámetros nominales seguros en envolvente física.")
-
+def calcular_parametros_rectificado(payload: Dict[str, Any]) -> Dict[str, Any]:
+    diametro_mm = float(payload.get("diametro_rueda", 125.0))
+    rpm = float(payload.get("rpm", 4500.0))
+    profundidad_ae_mm = float(payload.get("profundidad_pasada", 0.02))
+    avance_vf_mm_min = float(payload.get("avance_mesa", 500.0))
+    ancho_b_mm = float(payload.get("ancho_rueda", 10.0))
+    
+    vc_m_s = (math.pi * diametro_mm * rpm) / 60000.0
+    q_prime_w = (profundidad_ae_mm * avance_vf_mm_min) / 60.0
+    ft_prime = 1.5 * (q_prime_w ** 0.6) if q_prime_w > 0 else 0.0
+    potencia_kw = (ft_prime * ancho_b_mm * vc_m_s) / 1000.0
+    
     return {
-        "status": "ok",
-        "provider": "Motor Físico Local",
-        "alerta_critica": alerta,
-        "diagnostico": "\n".join(diagnostico)
+        "velocidad_corte_vc": round(vc_m_s, 2),
+        "tasa_remocion_qw": round(q_prime_w, 3),
+        "fuerza_tangencial_ft_prime": round(ft_prime, 2),
+        "potencia_estimada_kw": round(potencia_kw, 2),
+        "status": "success"
+    }
+
+def calculate_drill_forces(diameter: float, feed_mm_rev: float, vc_m_min: float, iso_code: str = "P") -> Dict[str, Any]:
+    from engineering.material_data import get_material_by_iso
+    mat = get_material_by_iso(iso_code)
+    kc1_1 = mat["kc1_1"]
+    mc = mat["mc"]
+    
+    h = feed_mm_rev / 2.0
+    kc = kc1_1 * (h ** -mc) if h > 0 else kc1_1
+    fc = kc * (diameter / 2.0) * h
+    mc_nm = (fc * (diameter / 4.0)) / 1000.0
+    fz_n = fc * 1.2
+    
+    return {
+        "fuerza_axial_fz_n": round(fz_n, 1),
+        "torque_mc_nm": round(mc_nm, 2),
+        "fuerza_especifica_kc": round(kc, 1)
     }

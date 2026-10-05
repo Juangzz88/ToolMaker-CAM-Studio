@@ -91,7 +91,7 @@
 }
 </style>
 
-<!-- ENCABEZADO HOMOLOGADO MÓDULO 2 (UBICADO FUERA Y ARRIBA DE LAS COLUMNAS) -->
+<!-- ENCABEZADO HOMOLOGADO MÓDULO 2 -->
 <div class="module-header-container mb-3 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-2">
         <h5 class="text-accent mb-0 fw-bold d-flex align-items-center gap-2">
@@ -108,7 +108,7 @@
 
     <div class="d-flex gap-2 align-items-center">
         <button type="button" onclick="window.print()" class="btn btn-outline-light btn-sm fw-bold px-3">
-            🖨️ Exportar Hoja CNC
+            🖨️️ Exportar Hoja CNC
         </button>
 
         <div class="btn-group" role="group">
@@ -147,7 +147,7 @@
                 </div>
             </div>
 
-            <form id="form-geom">
+            <form id="form-geom" onsubmit="return false;">
                 <div class="row g-2 mb-3">
                     <div class="col-6">
                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -316,10 +316,9 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-2 mt-2">
-                    <button type="submit" class="btn btn-info text-dark fw-bold w-50 py-2" style="background-color: #00f2fe; border: none;">CALCULAR GEOMETRÍA</button>
-                    <button type="button" id="btn-transfer" class="btn btn-outline-info fw-bold w-50 py-2">USAR EN MÓDULO 1</button>
-                </div>
+                <div class="mt-2">
+    <button type="submit" id="btn-submit-geom" class="btn btn-info text-dark fw-bold w-100 py-2" style="background-color: #00f2fe; border: none;">CALCULAR GEOMETRÍA</button>
+</div>
             </form>
         </div>
     </div>
@@ -389,12 +388,32 @@
             </div>
 
             <div class="p-3 rounded border border-secondary text-center panel-box">
-    <label class="d-block mb-1 fw-bold text-muted small">ÍNDICE DE INERCIA RELATIVO (Iz Equiv.):</label>
-    <span id="res-rigidez" class="fs-4 fw-bold">14.8%</span>
-    <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Sección Circular Equivalente</div>
-</div>
+                <label class="d-block mb-1 fw-bold text-muted small">ÍNDICE DE INERCIA RELATIVO (Iz Equiv.):</label>
+                <span id="res-rigidez" class="fs-4 fw-bold">14.8%</span>
+                <div id="est-rigidez" class="small fw-bold mt-1 status-ok">Sección Circular Equivalente</div>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- MODAL HUD DE ALERTAS PARA MÓDULO GEOMETRÍA -->
+<div class="modal fade" id="modalAlertaHUDGeom" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger" style="background-color: #0d1527; color: #f8fafc; border: 1px solid #ef4444;">
+      <div class="modal-header border-danger" style="border-bottom-color: rgba(239, 68, 68, 0.3) !important;">
+        <h5 class="modal-title text-danger fw-bold d-flex align-items-center gap-2 fs-6">
+          🛑 ALERTA TÉCNICA - GEOMETRÍA EXCEDIDA
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body fs-6" id="msjModalAlertaGeom">
+        Parámetros geométricos fuera de rango operacional.
+      </div>
+      <div class="modal-footer" style="border-top-color: rgba(239, 68, 68, 0.3) !important;">
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold px-4" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -410,6 +429,17 @@ let startY = 0;
 
 let showCotas = true;
 let showGrid = true;
+
+function mostrarAlertaGeomHUD(mensaje) {
+    const elMsj = document.getElementById('msjModalAlertaGeom');
+    if (elMsj) elMsj.textContent = mensaje;
+    
+    const modalEl = document.getElementById('modalAlertaHUDGeom');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
 
 function calcularToleranciaISO(d) {
     if (!d || d <= 0) return { h6: "±0", e8: "±0", h10: "±0" };
@@ -553,9 +583,10 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     const heliceA = parseFloat(document.getElementById('helice_a')?.value || 35.0);
     const valEsq = parseFloat(document.getElementById('val_esquina')?.value || 0.24);
 
-    const scale = 65 / Math.max(d1, lcInput * 0.38);
-    const toolH = Math.min(50, Math.max(24, d1 * scale));
-    const toolHD2 = (tipoTool === 'conica') ? Math.min(58, Math.max(28, d2 * scale)) : toolH;
+    const maxD = Math.max(d1, d2);
+    const scale = 65 / Math.max(maxD, lcInput * 0.38);
+    const toolH = Math.min(50, Math.max(16, d1 * scale));
+    const toolHD2 = (tipoTool === 'conica') ? Math.min(58, Math.max(24, d2 * scale)) : toolH;
 
     const lenFlute = Math.min(160, Math.max(80, lcInput * scale * 0.85));
     const lenShank = Math.min(100, Math.max(60, lenFlute * 0.7));
@@ -567,6 +598,7 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     const y0 = -toolHD2 / 2;
     const yCut0 = -toolH / 2;
 
+    // DIBUJO DEL VÁSTAGO / ZANCO
     ctx.strokeStyle = '#38bdf8';
     ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
     ctx.lineWidth = 1.8;
@@ -589,6 +621,7 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     ctx.lineTo(xJoint, y0 + toolHD2);
     ctx.stroke();
 
+    // DIBUJO DEL PERFIL DE CORTE
     ctx.strokeStyle = '#38bdf8';
     ctx.beginPath();
 
@@ -622,16 +655,21 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     ctx.fill();
     ctx.stroke();
 
+    // LÍNEAS VISUALES DE HÉLICE
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
     ctx.lineWidth = 1.2;
     const pasoVisual = Math.max(14, 30 - (heliceA * 0.3));
     for (let x = xJoint + 8; x < xTip - 4; x += pasoVisual) {
+        const factorProg = (x - xJoint) / lenFlute;
+        const currentH = (tipoTool === 'conica') ? (toolHD2 - (toolHD2 - toolH) * factorProg) : toolH;
+        const currentY = -currentH / 2;
         ctx.beginPath();
-        ctx.moveTo(x, yCut0);
-        ctx.lineTo(x + (heliceA * 0.3), yCut0 + toolH);
+        ctx.moveTo(x, currentY);
+        ctx.lineTo(x + (heliceA * 0.3), currentY + currentH);
         ctx.stroke();
     }
 
+    // EJE DE SIMETRÍA
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
     ctx.setLineDash([5, 4]);
     ctx.beginPath();
@@ -640,22 +678,52 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // ACOTAMIENTO TÉCNICO EN CANVAS
     if (renderCotas) {
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#38bdf8';
         ctx.font = '10px "JetBrains Mono", monospace';
-
         const dec = (currentUnit === 'in') ? 4 : 3;
-
         ctx.strokeStyle = '#64748b';
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x0 - 8, y0);
-        ctx.lineTo(x0 - 8, y0 + toolHD2);
-        ctx.stroke();
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`Ø${d1.toFixed(dec)}`, x0 - 13, 0);
 
+        if (tipoTool === 'conica') {
+            // 1. COTA DE DIÁMETRO DE RAIZ (D2)
+            ctx.beginPath();
+            ctx.moveTo(xJoint, y0);
+            ctx.lineTo(xJoint, y0 + toolHD2);
+            ctx.stroke();
+
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`ØD2 ${d2.toFixed(dec)}`, xJoint - 6, 0);
+
+            // 2. COTA DE DIÁMETRO DE PUNTA (D1)
+            ctx.beginPath();
+            ctx.moveTo(xTip + 8, yCut0);
+            ctx.lineTo(xTip + 8, yCut0 + toolH);
+            ctx.stroke();
+
+            // Flechas / Líneas de extensión para D1
+            ctx.beginPath();
+            ctx.moveTo(xTip, yCut0); ctx.lineTo(xTip + 12, yCut0);
+            ctx.moveTo(xTip, yCut0 + toolH); ctx.lineTo(xTip + 12, yCut0 + toolH);
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`ØD1 ${d1.toFixed(dec)}`, xTip + 14, 0);
+        } else {
+            // COTA ESTÁNDAR PARA HERRAMIENTAS CILÍNDRICAS
+            ctx.beginPath();
+            ctx.moveTo(x0 - 8, y0);
+            ctx.lineTo(x0 - 8, y0 + toolHD2);
+            ctx.stroke();
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`Ø${d1.toFixed(dec)}`, x0 - 13, 0);
+        }
+
+        // COTA DE LONGITUD DE CORTE (Lc)
         ctx.beginPath();
         ctx.moveTo(xJoint, yCut0 - 8);
         ctx.lineTo(xTip, yCut0 - 8);
@@ -673,58 +741,6 @@ function dibujarGeometriaFresa(ctx, width, height, renderGrid, renderCotas) {
     ctx.restore();
     ctx.restore();
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
-
-    const cvs = document.getElementById('canvasPerfilTool');
-    if (cvs) {
-        cvs.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
-            cvs.style.cursor = 'grabbing';
-        });
-
-        window.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            panX = e.clientX - startX;
-            panY = e.clientY - startY;
-            dibujarPerfil2DFresa();
-        });
-
-        window.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-                if (cvs) cvs.style.cursor = 'grab';
-            }
-        });
-
-        cvs.addEventListener('wheel', function(e) {
-            e.preventDefault();
-
-            const rect = cvs.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left - (rect.width / 2);
-            const mouseY = e.clientY - rect.top - (rect.height / 2);
-
-            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-            const newScale = Math.max(0.4, Math.min(8.0, hudScale * zoomFactor));
-
-            panX = mouseX - (mouseX - panX) * (newScale / hudScale);
-            panY = mouseY - (mouseY - panY) * (newScale / hudScale);
-
-            hudScale = newScale;
-            dibujarPerfil2DFresa();
-        }, { passive: false });
-    }
-
-    inicializarGraficoRadar();
-    actualizarBadgeISO();
-    document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
-});
 
 function inicializarGraficoRadar() {
     const ctx = document.getElementById('radarRendimientoCanvas');
@@ -809,240 +825,7 @@ function calcularLongitudCorteAutomatica() {
     }
 }
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const activeElement = document.activeElement;
-        if (activeElement && activeElement.classList.contains('enter-next')) {
-            e.preventDefault();
-
-            const inputs = Array.from(document.querySelectorAll('.enter-next'))
-                .filter(el => el.offsetParent !== null && !el.disabled && el.type !== 'hidden');
-
-            const currentIndex = inputs.indexOf(activeElement);
-            if (currentIndex > -1 && currentIndex < inputs.length - 1) {
-                const nextInput = inputs[currentIndex + 1];
-                nextInput.focus();
-                if (nextInput.select) nextInput.select();
-            } else {
-                ejecutarCalculoGeometria();
-            }
-        }
-    }
-});
-
-['diametro_ext', 'diametro_d2', 'angulo_conicidad', 'pct_nucleo', 'num_canales', 'rake_radial', 'longitud_corte', 'val_esquina', 'helice_a', 'core_taper_deg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('input', function() {
-            const tipoTool = document.getElementById('tipo_herramienta')?.value;
-            const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 0);
-            const valEsqInput = document.getElementById('val_esquina');
-            const dec = (currentUnit === 'in') ? 4 : 3;
-
-            actualizarBadgeISO();
-
-            if (tipoTool === 'conica') {
-                calcularLongitudCorteAutomatica();
-            } else if (tipoTool === 'esferica' && id === 'diametro_ext') {
-                if (valEsqInput) valEsqInput.value = (d1 / 2.0).toFixed(dec);
-            } else if (tipoTool === 'plana' && id === 'diametro_ext' && d1 > 0) {
-                const radioProteccion = d1 * 0.04;
-                if (valEsqInput) valEsqInput.value = radioProteccion.toFixed(dec);
-            }
-            ejecutarCalculoGeometria();
-        });
-    }
-});
-
-document.getElementById('tipo_herramienta')?.addEventListener('change', function() {
-    const val = this.value;
-    const boxTipoEsq = document.getElementById('box-tipo-esquina');
-    const boxValEsq = document.getElementById('box-val-esquina');
-    const boxDish = document.getElementById('box-dish-angle');
-    const subDishContainer = document.getElementById('sub-dish-container');
-    const valEsqInput = document.getElementById('val_esquina');
-    const boxConicidad = document.getElementById('box-conicidad');
-    const boxD2Conico = document.getElementById('box-d2-conico');
-    const secCoreTaper = document.getElementById('sec-core-taper');
-    const lblDiamExt = document.getElementById('lbl-diametro-ext');
-    const lblLc = document.getElementById('lbl-long-corte');
-    const inputLc = document.getElementById('longitud_corte');
-
-    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
-    const dec = (currentUnit === 'in') ? 4 : 3;
-
-    if (val === 'conica') {
-        boxConicidad?.classList.remove('d-none');
-        boxD2Conico?.classList.remove('d-none');
-        secCoreTaper?.classList.add('d-none');
-        if (lblDiamExt) lblDiamExt.textContent = "Diámetro Punta (D1)";
-        if (lblLc) lblLc.textContent = "Long. Corte Calculada (Lc)";
-        if (inputLc) {
-            inputLc.disabled = true;
-            inputLc.style.backgroundColor = "#1a264a";
-            inputLc.style.color = "#38bdf8";
-        }
-        
-        boxTipoEsq?.classList.remove('d-none');
-        boxDish?.classList.remove('d-none');
-        subDishContainer?.classList.remove('d-none');
-        boxValEsq?.classList.remove('d-none');
-        if (valEsqInput) valEsqInput.disabled = false;
-        
-        calcularLongitudCorteAutomatica();
-    } else {
-        boxConicidad?.classList.add('d-none');
-        boxD2Conico?.classList.add('d-none');
-        secCoreTaper?.classList.remove('d-none');
-        if (lblDiamExt) lblDiamExt.textContent = "Diámetro Exterior (D1)";
-        if (lblLc) lblLc.textContent = "Longitud de Corte (Lc)";
-        if (inputLc) {
-            inputLc.disabled = false;
-            inputLc.style.backgroundColor = "";
-            inputLc.style.color = "";
-        }
-
-        if (val === 'esferica') {
-            boxTipoEsq?.classList.add('d-none');
-            boxDish?.classList.add('d-none');
-            subDishContainer?.classList.add('d-none');
-            boxValEsq?.classList.remove('d-none');
-            if (valEsqInput) {
-                valEsqInput.value = (d1 / 2.0).toFixed(dec);
-                valEsqInput.disabled = true;
-            }
-            const lblValEsq = document.getElementById('lbl-val-esquina');
-            if (lblValEsq) lblValEsq.textContent = 'Radio Esférico (R=D/2)';
-        } else if (val === 'toroidal') {
-            boxTipoEsq?.classList.add('d-none');
-            boxDish?.classList.remove('d-none');
-            subDishContainer?.classList.remove('d-none');
-            boxValEsq?.classList.remove('d-none');
-            if (valEsqInput) {
-                valEsqInput.disabled = false;
-                if (parseFloat(valEsqInput.value) >= d1 / 2.0) valEsqInput.value = (d1 * 0.1).toFixed(dec);
-            }
-            const lblValEsq = document.getElementById('lbl-val-esquina');
-            if (lblValEsq) lblValEsq.textContent = 'Radio Toroidal (R)';
-        } else {
-            boxTipoEsq?.classList.remove('d-none');
-            boxDish?.classList.remove('d-none');
-            subDishContainer?.classList.remove('d-none');
-            boxValEsq?.classList.remove('d-none');
-            if (valEsqInput) {
-                valEsqInput.disabled = false;
-                const radioProteccion = d1 * 0.04;
-                valEsqInput.value = radioProteccion.toFixed(dec);
-            }
-            const lblValEsq = document.getElementById('lbl-val-esquina');
-            const tipoEsqVal = document.getElementById('tipo_esquina')?.value;
-            if (lblValEsq) lblValEsq.textContent = tipoEsqVal === 'chaflan' ? 'Ancho Chaflán' : 'Radio Protec. (R)';
-        }
-    }
-    ejecutarCalculoGeometria();
-});
-
-document.getElementById('tipo_helice')?.addEventListener('change', function() {
-    const isVar = (this.value === 'variable');
-    const groupVar = document.getElementById('group-var-helix');
-    if (groupVar) {
-        if (isVar) groupVar.classList.remove('d-none');
-        else groupVar.classList.add('d-none');
-    }
-    ejecutarCalculoGeometria();
-});
-
-document.getElementById('tipo_esquina')?.addEventListener('change', function() {
-    const lbl = document.getElementById('lbl-val-esquina');
-    const tipoTool = document.getElementById('tipo_herramienta')?.value;
-    if (lbl) {
-        if (this.value === 'chaflan') lbl.textContent = 'Ancho Chaflán';
-        else lbl.textContent = (tipoTool === 'plana') ? 'Radio Protec. (R)' : 'Radio (R)';
-    }
-    ejecutarCalculoGeometria();
-});
-
-document.getElementById('preset_material')?.addEventListener('change', function() {
-    const val = this.value;
-    if (val === 'acero') {
-        document.getElementById('num_canales').value = 4;
-        document.getElementById('pct_nucleo').value = 62;
-        document.getElementById('tipo_helice').value = 'variable';
-        document.getElementById('helice_a').value = 35;
-        document.getElementById('helice_b').value = 38;
-        document.getElementById('delta_index').value = 2.0;
-        document.getElementById('rake_radial').value = 12;
-        document.getElementById('dish_angle').value = 2.0;
-    } else if (val === 'aluminio') {
-        document.getElementById('num_canales').value = 2;
-        document.getElementById('pct_nucleo').value = 52;
-        document.getElementById('tipo_helice').value = 'estandar';
-        document.getElementById('helice_a').value = 45;
-        document.getElementById('rake_radial').value = 18;
-        document.getElementById('dish_angle').value = 3.0;
-    } else if (val === 'alto_rendimiento') {
-        document.getElementById('num_canales').value = 5;
-        document.getElementById('pct_nucleo').value = 70;
-        document.getElementById('tipo_helice').value = 'variable';
-        document.getElementById('helice_a').value = 36;
-        document.getElementById('helice_b').value = 39;
-        document.getElementById('delta_index').value = 2.5;
-        document.getElementById('rake_radial').value = 8;
-        document.getElementById('dish_angle').value = 1.5;
-    }
-    document.getElementById('tipo_helice')?.dispatchEvent(new Event('change'));
-});
-
-document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
-    radio.addEventListener('change', function() {
-        const newUnit = this.value;
-        if (newUnit === currentUnit) return;
-
-        const isToInch = (newUnit === 'in');
-        const factor = isToInch ? (1.0 / 25.4) : 25.4;
-
-        ['diametro_ext', 'diametro_d2', 'longitud_corte', 'val_esquina'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input && input.value !== '') {
-                const num = parseFloat(input.value);
-                if (!isNaN(num)) input.value = (num * factor).toFixed(isToInch ? 4 : 3);
-            }
-        });
-
-        currentUnit = newUnit;
-        document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
-        actualizarBadgeISO();
-        document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
-    });
-});
-
-document.getElementById('btn-transfer')?.addEventListener('click', function() {
-    const tipoTool = document.getElementById('tipo_herramienta')?.value || 'plana';
-    const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
-    const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 16);
-    const z = parseInt(document.getElementById('num_canales')?.value || 4);
-    const pctDc = parseFloat(document.getElementById('pct_nucleo')?.value || 62);
-    const lc = parseFloat(document.getElementById('longitud_corte')?.value || 30);
-
-    let dCalc = d1;
-    if (tipoTool === 'conica') dCalc = (d1 + d2) / 2.0;
-
-    const apFlute = (dCalc - (dCalc * (pctDc / 100.0))) / 2.0;
-
-    const toolData = {
-        diametro_fresa: dCalc.toFixed(currentUnit === 'in' ? 4 : 3),
-        num_canales: z,
-        profundidad_canal: apFlute.toFixed(currentUnit === 'in' ? 4 : 3),
-        longitud_corte: lc,
-        unidad: currentUnit
-    };
-
-    localStorage.setItem('toolmaker_active_tool', JSON.stringify(toolData));
-    alert(`Datos de fresa (${tipoTool.toUpperCase()}: Ø${dCalc.toFixed(2)}${currentUnit}, ${z} Canales) enviados a Módulo 1.`);
-    window.location.href = '/calculadora-muelas';
-});
-
-async function ejecutarCalculoGeometria() {
+async function ejecutarCalculoGeometria(esSubmitManual = false) {
     const tipoTool = document.getElementById('tipo_herramienta')?.value || 'plana';
     const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
     const d2 = parseFloat(document.getElementById('diametro_d2')?.value || 16);
@@ -1063,6 +846,14 @@ async function ejecutarCalculoGeometria() {
     }
 
     const dish = parseFloat(document.getElementById('dish_angle')?.value || 2.0);
+
+    // Validación previa de límites geométricos
+    if (d1 > 100 || lc > 300) {
+        if (esSubmitManual) {
+            mostrarAlertaGeomHUD(`🛑 Dimensiones exceden los límites físicos de fabricación (D1: ${d1} mm, Lc: ${lc} mm).`);
+        }
+        return false;
+    }
 
     let dcPunta = d1 * (pctDc / 100.0);
     if (tipoTool === 'esferica') dcPunta = dcPunta * 0.75;
@@ -1133,6 +924,14 @@ async function ejecutarCalculoGeometria() {
             body: JSON.stringify(data)
         });
         const json = await res.json();
+
+        if (json.alerta || json.error || json.success === false) {
+            if (esSubmitManual) {
+                mostrarAlertaGeomHUD(json.alerta || json.error || "🛑 Límite Geométrico Excedido");
+            }
+            return false;
+        }
+
         if (json.success) {
             if (resPunta) resPunta.textContent = json.diametro_nucleo_punta;
             if (resRaiz) resRaiz.textContent = json.diametro_nucleo_raiz;
@@ -1155,18 +954,295 @@ async function ejecutarCalculoGeometria() {
             }
 
             actualizarGraficoRadar(json.rigidez_relativa, z, pctDc, tipoHel, rake);
+            return true;
         }
     } catch (err) {
         console.error("Error al calcular geometría:", err);
     }
+    return true;
 }
 
-const formGeom = document.getElementById('form-geom');
-if (formGeom) {
-    formGeom.addEventListener('submit', function(e) {
-        e.preventDefault();
-        ejecutarCalculoGeometria();
+document.addEventListener('DOMContentLoaded', function() {
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
     });
-}
+
+    const cvs = document.getElementById('canvasPerfilTool');
+    if (cvs) {
+        cvs.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            cvs.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            dibujarPerfil2DFresa();
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                if (cvs) cvs.style.cursor = 'grab';
+            }
+        });
+
+        cvs.addEventListener('wheel', function(e) {
+            e.preventDefault();
+
+            const rect = cvs.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - (rect.width / 2);
+            const mouseY = e.clientY - rect.top - (rect.height / 2);
+
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+            const newScale = Math.max(0.4, Math.min(8.0, hudScale * zoomFactor));
+
+            panX = mouseX - (mouseX - panX) * (newScale / hudScale);
+            panY = mouseY - (mouseY - panY) * (newScale / hudScale);
+
+            hudScale = newScale;
+            dibujarPerfil2DFresa();
+        }, { passive: false });
+    }
+
+    inicializarGraficoRadar();
+    actualizarBadgeISO();
+
+    // NAV_ENTER: NAVEGACIÓN Y CÁLCULO HOMOLOGADO AL PRESIONAR ENTER
+    function obtenerElementosNavegables() {
+        return Array.from(document.querySelectorAll('.enter-next')).filter(el => {
+            return !el.disabled && el.offsetParent !== null && getComputedStyle(el).display !== 'none';
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const target = e.target;
+            if (target && target.classList && target.classList.contains('enter-next')) {
+                e.preventDefault(); // Detener envío por defecto
+
+                // Recálculo inmediato
+                ejecutarCalculoGeometria(true);
+
+                const navegables = obtenerElementosNavegables();
+                const currentIndex = navegables.indexOf(target);
+
+                if (currentIndex !== -1 && currentIndex < navegables.length - 1) {
+                    const nextEl = navegables[currentIndex + 1];
+                    nextEl.focus();
+                    if (typeof nextEl.select === 'function') {
+                        nextEl.select();
+                    }
+                } else {
+                    // Si es el último campo, hacer click en el botón de calcular
+                    const btnSubmit = document.getElementById('btn-submit-geom');
+                    if (btnSubmit) btnSubmit.click();
+                }
+            }
+        }
+    });
+
+    ['diametro_ext', 'diametro_d2', 'angulo_conicidad', 'pct_nucleo', 'num_canales', 'rake_radial', 'longitud_corte', 'val_esquina', 'helice_a', 'core_taper_deg'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() {
+                const tipoTool = document.getElementById('tipo_herramienta')?.value;
+                const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 0);
+                const valEsqInput = document.getElementById('val_esquina');
+                const dec = (currentUnit === 'in') ? 4 : 3;
+
+                actualizarBadgeISO();
+
+                if (tipoTool === 'conica') {
+                    calcularLongitudCorteAutomatica();
+                } else if (tipoTool === 'esferica' && id === 'diametro_ext') {
+                    if (valEsqInput) valEsqInput.value = (d1 / 2.0).toFixed(dec);
+                } else if (tipoTool === 'plana' && id === 'diametro_ext' && d1 > 0) {
+                    const radioProteccion = d1 * 0.04;
+                    if (valEsqInput) valEsqInput.value = radioProteccion.toFixed(dec);
+                }
+                
+                // Redibujar Canvas 2D local sin lanzar alertas de modal
+                dibujarPerfil2DFresa();
+            });
+        }
+    });
+
+    document.getElementById('tipo_herramienta')?.addEventListener('change', function() {
+        const val = this.value;
+        const boxTipoEsq = document.getElementById('box-tipo-esquina');
+        const boxValEsq = document.getElementById('box-val-esquina');
+        const boxDish = document.getElementById('box-dish-angle');
+        const subDishContainer = document.getElementById('sub-dish-container');
+        const valEsqInput = document.getElementById('val_esquina');
+        const boxConicidad = document.getElementById('box-conicidad');
+        const boxD2Conico = document.getElementById('box-d2-conico');
+        const secCoreTaper = document.getElementById('sec-core-taper');
+        const lblDiamExt = document.getElementById('lbl-diametro-ext');
+        const lblLc = document.getElementById('lbl-long-corte');
+        const inputLc = document.getElementById('longitud_corte');
+
+        const d1 = parseFloat(document.getElementById('diametro_ext')?.value || 12);
+        const dec = (currentUnit === 'in') ? 4 : 3;
+
+        if (val === 'conica') {
+            boxConicidad?.classList.remove('d-none');
+            boxD2Conico?.classList.remove('d-none');
+            secCoreTaper?.classList.add('d-none');
+            if (lblDiamExt) lblDiamExt.textContent = "Diámetro Punta (D1)";
+            if (lblLc) lblLc.textContent = "Long. Corte Calculada (Lc)";
+            if (inputLc) {
+                inputLc.disabled = true;
+                inputLc.style.backgroundColor = "#1a264a";
+                inputLc.style.color = "#38bdf8";
+            }
+            
+            boxTipoEsq?.classList.remove('d-none');
+            boxDish?.classList.remove('d-none');
+            subDishContainer?.classList.remove('d-none');
+            boxValEsq?.classList.remove('d-none');
+            if (valEsqInput) valEsqInput.disabled = false;
+            
+            calcularLongitudCorteAutomatica();
+        } else {
+            boxConicidad?.classList.add('d-none');
+            boxD2Conico?.classList.add('d-none');
+            secCoreTaper?.classList.remove('d-none');
+            if (lblDiamExt) lblDiamExt.textContent = "Diámetro Exterior (D1)";
+            if (lblLc) lblLc.textContent = "Longitud de Corte (Lc)";
+            if (inputLc) {
+                inputLc.disabled = false;
+                inputLc.style.backgroundColor = "";
+                inputLc.style.color = "";
+            }
+
+            if (val === 'esferica') {
+                boxTipoEsq?.classList.add('d-none');
+                boxDish?.classList.add('d-none');
+                subDishContainer?.classList.add('d-none');
+                boxValEsq?.classList.remove('d-none');
+                if (valEsqInput) {
+                    valEsqInput.value = (d1 / 2.0).toFixed(dec);
+                    valEsqInput.disabled = true;
+                }
+                const lblValEsq = document.getElementById('lbl-val-esquina');
+                if (lblValEsq) lblValEsq.textContent = 'Radio Esférico (R=D/2)';
+            } else if (val === 'toroidal') {
+                boxTipoEsq?.classList.add('d-none');
+                boxDish?.classList.remove('d-none');
+                subDishContainer?.classList.remove('d-none');
+                boxValEsq?.classList.remove('d-none');
+                if (valEsqInput) {
+                    valEsqInput.disabled = false;
+                    if (parseFloat(valEsqInput.value) >= d1 / 2.0) valEsqInput.value = (d1 * 0.1).toFixed(dec);
+                }
+                const lblValEsq = document.getElementById('lbl-val-esquina');
+                if (lblValEsq) lblValEsq.textContent = 'Radio Toroidal (R)';
+            } else {
+                boxTipoEsq?.classList.remove('d-none');
+                boxDish?.classList.remove('d-none');
+                subDishContainer?.classList.remove('d-none');
+                boxValEsq?.classList.remove('d-none');
+                if (valEsqInput) {
+                    valEsqInput.disabled = false;
+                    const radioProteccion = d1 * 0.04;
+                    valEsqInput.value = radioProteccion.toFixed(dec);
+                }
+                const lblValEsq = document.getElementById('lbl-val-esquina');
+                const tipoEsqVal = document.getElementById('tipo_esquina')?.value;
+                if (lblValEsq) lblValEsq.textContent = tipoEsqVal === 'chaflan' ? 'Ancho Chaflán' : 'Radio Protec. (R)';
+            }
+        }
+        ejecutarCalculoGeometria(true);
+    });
+
+    document.getElementById('tipo_helice')?.addEventListener('change', function() {
+        const isVar = (this.value === 'variable');
+        const groupVar = document.getElementById('group-var-helix');
+        if (groupVar) {
+            if (isVar) groupVar.classList.remove('d-none');
+            else groupVar.classList.add('d-none');
+        }
+        ejecutarCalculoGeometria(true);
+    });
+
+    document.getElementById('tipo_esquina')?.addEventListener('change', function() {
+        const lbl = document.getElementById('lbl-val-esquina');
+        const tipoTool = document.getElementById('tipo_herramienta')?.value;
+        if (lbl) {
+            if (this.value === 'chaflan') lbl.textContent = 'Ancho Chaflán';
+            else lbl.textContent = (tipoTool === 'plana') ? 'Radio Protec. (R)' : 'Radio (R)';
+        }
+        ejecutarCalculoGeometria(true);
+    });
+
+    document.getElementById('preset_material')?.addEventListener('change', function() {
+        const val = this.value;
+        if (val === 'acero') {
+            document.getElementById('num_canales').value = 4;
+            document.getElementById('pct_nucleo').value = 62;
+            document.getElementById('tipo_helice').value = 'variable';
+            document.getElementById('helice_a').value = 35;
+            document.getElementById('helice_b').value = 38;
+            document.getElementById('delta_index').value = 2.0;
+            document.getElementById('rake_radial').value = 12;
+            document.getElementById('dish_angle').value = 2.0;
+        } else if (val === 'aluminio') {
+            document.getElementById('num_canales').value = 2;
+            document.getElementById('pct_nucleo').value = 52;
+            document.getElementById('tipo_helice').value = 'estandar';
+            document.getElementById('helice_a').value = 45;
+            document.getElementById('rake_radial').value = 18;
+            document.getElementById('dish_angle').value = 3.0;
+        } else if (val === 'alto_rendimiento') {
+            document.getElementById('num_canales').value = 5;
+            document.getElementById('pct_nucleo').value = 70;
+            document.getElementById('tipo_helice').value = 'variable';
+            document.getElementById('helice_a').value = 36;
+            document.getElementById('helice_b').value = 39;
+            document.getElementById('delta_index').value = 2.5;
+            document.getElementById('rake_radial').value = 8;
+            document.getElementById('dish_angle').value = 1.5;
+        }
+        document.getElementById('tipo_helice')?.dispatchEvent(new Event('change'));
+    });
+
+    document.querySelectorAll('input[name="unidad"]').forEach((radio) => {
+        radio.addEventListener('change', function() {
+            const newUnit = this.value;
+            if (newUnit === currentUnit) return;
+
+            const isToInch = (newUnit === 'in');
+            const factor = isToInch ? (1.0 / 25.4) : 25.4;
+
+            ['diametro_ext', 'diametro_d2', 'longitud_corte', 'val_esquina'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.value !== '') {
+                    const num = parseFloat(input.value);
+                    if (!isNaN(num)) input.value = (num * factor).toFixed(isToInch ? 4 : 3);
+                }
+            });
+
+            currentUnit = newUnit;
+            document.querySelectorAll('.unit-label').forEach(el => el.textContent = newUnit);
+            actualizarBadgeISO();
+            document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
+        });
+    });
+
+    const formGeom = document.getElementById('form-geom');
+    if (formGeom) {
+        formGeom.addEventListener('submit', function(e) {
+            e.preventDefault();
+            ejecutarCalculoGeometria(true);
+        });
+    }
+
+    document.getElementById('tipo_herramienta')?.dispatchEvent(new Event('change'));
+});
 </script>
 {% endblock %}
