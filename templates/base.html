@@ -2,7 +2,7 @@
 <html lang="es" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{% block title %}ToolMaker CAM Studio{% endblock %}</title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,6 +32,7 @@
       width: 100vw;
     }
 
+    /* BARRA LATERAL (SIDEBAR) RESPONSIVA */
     .sidebar {
       width: 65px;
       background-color: #0f172a;
@@ -44,8 +45,32 @@
       flex-shrink: 0;
     }
 
-    .sidebar:hover {
-      width: 280px;
+    /* En escritorio se expande al hover */
+    @media (min-width: 992px) {
+      .sidebar:hover {
+        width: 280px;
+      }
+      .sidebar:hover .nav-text {
+        opacity: 1;
+      }
+    }
+
+    /* En pantallas móviles se convierte en un cajón flotante al activarlo */
+    @media (max-width: 991.98px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: -280px;
+        width: 280px !important;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+      }
+      .sidebar.mobile-open {
+        left: 0;
+      }
+      .sidebar .nav-text {
+        opacity: 1 !important;
+      }
     }
 
     .sidebar-brand {
@@ -76,6 +101,7 @@
       padding: 10px 0;
       margin: 0;
       flex-grow: 1;
+      overflow-y: auto;
     }
 
     .sidebar-item {
@@ -122,15 +148,37 @@
       transition: opacity 0.2s ease-in-out;
     }
 
-    .sidebar:hover .nav-text {
-      opacity: 1;
-    }
-
     .main-wrapper {
       flex-grow: 1;
       width: calc(100vw - 65px);
       background-color: #0b1120;
       overflow-y: auto;
+    }
+
+    @media (max-width: 991.98px) {
+      .main-wrapper {
+        width: 100vw !important;
+      }
+    }
+
+    /* HEADER MÓVIL SUPERIOR (Visible únicamente en tablets y teléfonos) */
+    .mobile-header {
+      display: none;
+      height: 56px;
+      background-color: #0f172a;
+      border-bottom: 1px solid #334155;
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    @media (max-width: 991.98px) {
+      .mobile-header {
+        display: flex;
+      }
     }
 
     input.form-control, select.form-select, .param-value, .input-group-text {
@@ -175,13 +223,13 @@
       height: 36px;
     }
 
-    /* DOCK INFERIOR FÍSICO */
+    /* DOCK INFERIOR FÍSICO RESPONSIVO */
     .ia-dock-container {
       position: fixed;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 92%;
+      width: 95%;
       max-width: 1050px;
       background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(12px);
@@ -218,14 +266,39 @@
       opacity: 1;
       overflow-y: auto;
     }
+
+    /* TABLAS RESPONSIVAS CON DESPLAZAMIENTO TÁCTIL */
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* CONTROL DE ESCALADO VECTORIAL DE ELEMENTOS */
+    svg, img, canvas {
+      max-width: 100%;
+      height: auto;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
+  <!-- ENCABEZADO EXCLUSIVO PARA DISPOSITIVOS MÓVILES -->
+  <header class="mobile-header">
+    <button class="btn btn-outline-info btn-sm" id="btn-toggle-sidebar" type="button" aria-label="Abrir Menú">
+      <i class="bi bi-list fs-5"></i>
+    </button>
+    <span class="fw-bold text-info font-monospace">ToolMaker CAM</span>
+    <button class="btn btn-outline-light btn-sm" data-bs-toggle="offcanvas" data-bs-target="#offcanvasModules">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+    </button>
+  </header>
+
+  <!-- OVERLAY MÓVIL PARA CERRAR LA SIDEBAR AL DAR TAP FUERA -->
+  <div id="sidebar-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:999;"></div>
+
   <div class="app-layout">
     <!-- BARRA LATERAL -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
       <!-- BOTÓN LOGO: DESPLIEGA EL SELECTOR EN PANTALLA COMPLETA -->
       <a href="#" class="sidebar-brand" data-bs-toggle="offcanvas" data-bs-target="#offcanvasModules" title="Abrir Panel General de Módulos">
         <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
@@ -330,7 +403,7 @@
     </aside>
 
     <div class="main-wrapper">
-      <main class="container-fluid px-4 py-4">
+      <main class="container-fluid px-2 px-md-4 py-3 py-md-4">
         {% block content %}{% endblock %}
       </main>
     </div>
@@ -338,19 +411,19 @@
 
   <!-- PANEL SELECTOR PANTALLA COMPLETA (FULLSCREEN OFFCANVAS) -->
   <div class="offcanvas offcanvas-top offcanvas-fullscreen text-light" tabindex="-1" id="offcanvasModules" style="z-index: 1090;">
-    <div class="offcanvas-header border-bottom border-secondary px-5 py-4" style="background-color: #0f172a;">
-      <h4 class="offcanvas-title font-monospace fw-bold d-flex align-items-center gap-3" style="color: #38bdf8;">
-        <i class="bi bi-grid-3x3-gap-fill fs-3"></i> PANEL GENERAL DE MÓDULOS DE INGENIERÍA — TOOLMAKER CAM
+    <div class="offcanvas-header border-bottom border-secondary px-3 px-md-5 py-3 py-md-4" style="background-color: #0f172a;">
+      <h4 class="offcanvas-title font-monospace fw-bold d-flex align-items-center gap-2 gap-md-3 fs-6 fs-md-4" style="color: #38bdf8;">
+        <i class="bi bi-grid-3x3-gap-fill fs-4 fs-md-3"></i> PANEL GENERAL DE MÓDULOS — TOOLMAKER CAM
       </h4>
-      <button type="button" class="btn-close btn-close-white fs-4" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      <button type="button" class="btn-close btn-close-white fs-5 fs-md-4" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body d-flex align-items-center justify-content-center p-5" style="background-color: #0b1120;">
-      <!-- CUADRÍCULA HORIZONTAL PERFECTAMENTE ALINEADA (5 COLUMNAS EN PANTALLAS GRANDES) -->
-      <div class="row g-4 w-100 justify-content-center align-items-stretch">
+    <div class="offcanvas-body d-flex align-items-center justify-content-center p-3 p-md-5" style="background-color: #0b1120;">
+      <!-- CUADRÍCULA ADAPTATIVA (1 Columna en Móvil, hasta 5 en Desktop) -->
+      <div class="row g-3 g-md-4 w-100 justify-content-center align-items-stretch">
         
         <!-- MINIVISTA MÓDULO 1 -->
         <div class="col-12 col-md-6 col-lg-4 col-xl">
-          <div class="card h-100 module-card-horiz p-4 d-flex flex-column justify-content-between">
+          <div class="card h-100 module-card-horiz p-3 p-md-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge font-monospace px-3 py-2 fw-bold" style="background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.8rem;">MÓDULO 1</span>
@@ -369,7 +442,7 @@
 
         <!-- MINIVISTA MÓDULO 2 -->
         <div class="col-12 col-md-6 col-lg-4 col-xl">
-          <div class="card h-100 module-card-horiz p-4 d-flex flex-column justify-content-between">
+          <div class="card h-100 module-card-horiz p-3 p-md-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge font-monospace px-3 py-2 fw-bold" style="background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.8rem;">MÓDULO 2</span>
@@ -388,7 +461,7 @@
 
         <!-- MINIVISTA MÓDULO 3 -->
         <div class="col-12 col-md-6 col-lg-4 col-xl">
-          <div class="card h-100 module-card-horiz p-4 d-flex flex-column justify-content-between">
+          <div class="card h-100 module-card-horiz p-3 p-md-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge font-monospace px-3 py-2 fw-bold" style="background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.8rem;">MÓDULO 3</span>
@@ -407,7 +480,7 @@
 
         <!-- MINIVISTA MÓDULO 4 -->
         <div class="col-12 col-md-6 col-lg-4 col-xl">
-          <div class="card h-100 module-card-horiz p-4 d-flex flex-column justify-content-between">
+          <div class="card h-100 module-card-horiz p-3 p-md-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge font-monospace px-3 py-2 fw-bold" style="background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 0.8rem;">MÓDULO 4</span>
@@ -426,7 +499,7 @@
 
         <!-- MINIVISTA MÓDULO 5 -->
         <div class="col-12 col-md-6 col-lg-4 col-xl">
-          <div class="card h-100 module-card-horiz p-4 d-flex flex-column justify-content-between">
+          <div class="card h-100 module-card-horiz p-3 p-md-4 d-flex flex-column justify-content-between">
             <div>
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="badge font-monospace px-3 py-2 fw-bold" style="background-color: rgba(0, 242, 254, 0.15); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.4); font-size: 0.8rem;">MÓDULO 5</span>
@@ -450,11 +523,11 @@
   <!-- DOCK INFERIOR / MINI-EVALUADOR FÍSICO -->
   <div id="iaDockWidget" class="ia-dock-container">
     <div class="ia-dock-header" onclick="toggleIADock()">
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 overflow-hidden">
         <span class="badge bg-dark text-info border border-secondary" style="font-size: 0.65rem;">EVALUADOR FÍSICO</span>
-        <small id="dock-summary" class="text-light text-truncate" style="max-width: 650px; font-size: 0.75rem;">Sincronizado | Modifique valores para evaluar...</small>
+        <small id="dock-summary" class="text-light text-truncate" style="max-width: 500px; font-size: 0.75rem;">Sincronizado | Modifique valores para evaluar...</small>
       </div>
-      <small class="text-accent fw-bold" id="dock-toggle-btn" style="font-size: 0.75rem;">▲ Ampliar</small>
+      <small class="text-accent fw-bold text-nowrap" id="dock-toggle-btn" style="font-size: 0.75rem;">▲ Ampliar</small>
     </div>
     <div class="ia-dock-body border-top border-secondary mt-1">
       <div id="aiAutoOutput" class="small text-light py-2">Modifique cualquier parámetro en pantalla para ejecutar el análisis físico en tiempo real.</div>
@@ -512,23 +585,23 @@
           <h5 class="modal-title text-info fw-bold"><i class="bi bi-shield-lock me-2"></i>Panel Admin de Licencias</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-4">
+        <div class="modal-body p-3 p-md-4">
           <div class="card bg-secondary bg-opacity-10 border-secondary mb-4 p-3">
             <h6 class="text-warning fw-bold mb-3"><i class="bi bi-person-plus-fill me-2"></i>Emitir Nueva Clave Corta (TMCS)</h6>
             <form id="form-admin-register" class="row g-2">
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary" id="admin-client-name" placeholder="Cliente / Empresa *" required>
               </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <input type="text" class="form-control form-control-sm bg-dark text-warning border-secondary font-monospace" id="admin-client-hwid" placeholder="HWID del Cliente *" required>
               </div>
-              <div class="col-md-3">
+              <div class="col-12 col-md-3">
                 <input type="email" class="form-control form-control-sm bg-dark text-light border-secondary" id="admin-client-email" placeholder="Correo">
               </div>
-              <div class="col-md-1">
+              <div class="col-6 col-md-1">
                 <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary text-center" id="admin-client-days" value="30" placeholder="Días" required>
               </div>
-              <div class="col-md-2">
+              <div class="col-6 col-md-2">
                 <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold">
                   <i class="bi bi-plus-circle me-1"></i> Generar
                 </button>
@@ -597,29 +670,29 @@
         </div>
         <div class="modal-body font-monospace">
           <div class="row g-2 mb-3">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">Diámetro Exterior D (mm):</label>
               <input type="number" id="def_D_ext" class="form-control bg-dark text-light border-secondary text-center" value="12.0" step="0.1" oninput="calcDeflexion()">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">Diámetro Núcleo d (mm):</label>
               <input type="number" id="def_d" class="form-control bg-dark text-light border-secondary text-center" value="7.8" step="0.1" oninput="calcDeflexion()">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">Voladizo L (mm):</label>
               <input type="number" id="def_l" class="form-control bg-dark text-light border-secondary text-center" value="35.0" step="1" oninput="calcDeflexion()">
             </div>
           </div>
           <div class="row g-2 mb-3">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">N° de Canales (Z):</label>
               <input type="number" id="def_z" class="form-control bg-dark text-light border-secondary text-center" value="4" step="1" oninput="calcDeflexion()">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">Ángulo Hélice λ (°):</label>
               <input type="number" id="def_helice" class="form-control bg-dark text-light border-secondary text-center" value="35" step="1" oninput="calcDeflexion()">
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
               <label class="form-label small">Fuerza Radial Frad (N):</label>
               <input type="number" id="def_frad" class="form-control bg-dark text-light border-secondary text-center" value="150" step="10" oninput="calcDeflexion()">
             </div>
@@ -686,7 +759,7 @@
           <h5 class="modal-title text-info fw-bold">Asistente Experto de Corrección de Fallas CNC</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-4 font-monospace">
+        <div class="modal-body p-3 p-md-4 font-monospace">
           <div class="mb-4">
             <label class="form-label text-info fw-bold small">Seleccione la falla observada en máquina o herramienta:</label>
             <select id="tb_sintoma" class="form-select bg-dark text-light border-info fw-bold" onchange="analizarFallaProceso()">
@@ -703,7 +776,7 @@
             <h6 class="text-info fw-bold mb-2 border-bottom border-secondary pb-2">🔍 Análisis de Causa Raíz Física:</h6>
             <p id="tb_causa_texto" class="small text-light mb-3" style="line-height: 1.6;"></p>
             <h6 class="text-info fw-bold mb-2 border-bottom border-secondary pb-2">💡 Acciones Correctivas Recomendadas:</h6>
-            <ul id="tb_acciones_lista" class="small text-light mb-3"></ul>
+            <ul id="tb_acciones_lista" class="small text-light mb-3 ps-3"></ul>
           </div>
         </div>
       </div>
@@ -715,6 +788,23 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // CONTROL DEL MENÚ MÓVIL
+    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+    const sidebar = document.getElementById('appSidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (btnToggleSidebar && sidebar && overlay) {
+      btnToggleSidebar.addEventListener('click', function() {
+        sidebar.classList.toggle('mobile-open');
+        overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
+      });
+
+      overlay.addEventListener('click', function() {
+        sidebar.classList.remove('mobile-open');
+        overlay.style.display = 'none';
+      });
+    }
+
     const modalLicencia = document.getElementById('modalLicencia');
     const modalAdmin = document.getElementById('modalAdminLicencias');
 
@@ -931,10 +1021,10 @@
     summary.innerHTML = `Sincronizado | ${paramValues.slice(0, 4).join(' | ')}`;
     output.innerHTML = `
       <div class="row g-2 align-items-center">
-        <div class="col-md-8">
+        <div class="col-12 col-md-8">
           <span class="text-success fw-bold">⚡ Evaluación de Proceso Estable:</span> Parámetros leídos correctamente (${inputs.length} variables activas).
         </div>
-        <div class="col-md-4 text-end">
+        <div class="col-12 col-md-4 text-md-end">
           <span class="badge bg-secondary border border-info font-monospace">Estado: OK (100% Sincronizado)</span>
         </div>
       </div>
