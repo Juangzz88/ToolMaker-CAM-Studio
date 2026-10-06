@@ -1,74 +1,71 @@
-import base64
+﻿# -*- coding: utf-8 -*-
+"""
+Generador de Claves de Licencia por Código Vinculadas a HWID
+ToolMaker CAM Studio
+"""
 import json
-from datetime import datetime
+import base64
+from datetime import datetime, timedelta
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import padding
 
-def generate_key_pair():
-    """Genera un nuevo par de llaves RSA de 2048 bits para ti."""
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    )
-    
-    public_pem = private_key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    
-    with open("private_key.pem", "wb") as f:
-        f.write(private_pem)
-    with open("public_key.pem", "wb") as f:
-        f.write(public_pem)
-        
-    print("🔑 Par de llaves RSA generado exitosamente (private_key.pem / public_key.pem).")
+PRIVATE_KEY_PATH = "private_key.pem"
 
-def issue_license(client_name: str, hwid: str, exp_date_str: str, private_key_path: str = "private_key.pem"):
-    """
-    Emite un archivo toolmaker.lic firmado digitalmente.
-    exp_date_str format: 'YYYY-MM-DD' o 'PERPETUAL'
-    """
-    with open(private_key_path, "rb") as f:
-        private_key = serialization.load_pem_private_key(f.read(), password=None)
+def load_private_key():
+    with open(PRIVATE_KEY_PATH, "rb") as key_file:
+        return serialization.load_pem_private_key(key_file.read(), password=None)
 
+def generar_clave_licencia(cliente, hwid, dias_validez, modulos=None):
+    if modulos is None:
+        modulos = [1, 2, 3, 4, 5]
+
+    fecha_exp = (datetime.now() + timedelta(days=dias_validez)).strftime("%Y-%m-%d")
+    
     payload = {
-        "client": client_name,
+        "client": cliente,
         "hwid": hwid,
-        "issued_at": datetime.now().strftime("%Y-%m-%d"),
-        "expires": exp_date_str
+        "exp": fecha_exp,
+        "mods": modulos
     }
     
-    payload_str = json.dumps(payload, sort_keys=True)
+    payload_json = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     
-    # Firmar el payload con la Clave Privada
+    private_key = load_private_key()
     signature = private_key.sign(
-        payload_str.encode('utf-8'),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
+        payload_json,
+        padding.PKCS1v15(),
         hashes.SHA256()
     )
     
-    license_file_content = {
-        "payload": payload_str,
-        "signature": base64.b64encode(signature).decode('utf-8')
+    token_data = {
+        "p": payload,
+        "s": base64.b64encode(signature).decode('utf-8')
     }
     
-    output_filename = f"toolmaker_{client_name.lower().replace(' ', '_')}.lic"
-    with open(output_filename, "w", encoding="utf-8") as f:
-        json.dump(license_file_content, f, indent=4)
-        
-    print(f"✅ Licencia emitida con éxito: {output_filename}")
-
-# Ejemplo de Uso:
-if __name__ == "__main__":
-    # 1. Descomentar si no tienes llaves generadas
-    # generate_key_pair()
+    token_bytes = json.dumps(token_data, separators=(',', ':')).encode('utf-8')
+    license_key = base64.urlsafe_b64encode(token_bytes).decode('utf-8')
     
-    # 2. Emitir licencia para un cliente
-    # issue_license("Taller CNC Precision", "TM-A8F3-91B2-C4E7", "2027-12-31")
-    pass
+    print("\n====================================================")
+    print(" ✅ ¡CLAVE FIRMADA CON HWID GENERADA!")
+    print("====================================================")
+    print(f" Cliente:    {cliente}")
+    print(f" HWID Equipo:{hwid}")
+    print(f" Expiración: {fecha_exp} ({dias_validez} días)")
+    print("----------------------------------------------------")
+    print(" CÓDIGO DE ACTIVACIÓN:")
+    print(f"\n {license_key}\n")
+    print("====================================================\n")
+    return license_key
+
+if __name__ == "__main__":
+    print("====================================================")
+    print(" GENERADOR DE CÓDIGOS HWID - TOOLMAKER CAM STUDIO")
+    print("====================================================")
+    cli = input("Nombre del Cliente: ").strip() or "Usuario Prueba"
+    hw = input("HWID del Equipo del Cliente: ").strip()
+    dias = input("Días de activación (ej. 30): ").strip() or "30"
+    
+    if not hw:
+        print("❌ Error: El HWID es obligatorio para vincular la clave al equipo.")
+    else:
+        generar_clave_licencia(cli, hw, int(dias))
